@@ -1,19 +1,13 @@
 package com.tastik.cycal;
 
-import com.tastik.cycal.core.domain.Races;
-import com.tastik.cycal.core.interactors.UseCase;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class CycalApplication {
-
-    @Autowired
-    private UseCase<Races> readFromSource;
 
     public static void main(String[] args) {
         SpringApplication.run(CycalApplication.class, args);

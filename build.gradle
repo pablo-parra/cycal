@@ -21,4 +21,9 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	include '**/*Tests.class'
+
+	testLogging {
+		events "PASSED", "SKIPPED", "FAILED"
+	}
 }

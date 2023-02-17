@@ -12,7 +12,6 @@ public record DayDTO(
 ) {
     public boolean isToday(){
         final var today = LocalDate.now();
-//        return today.getDayOfMonth() == day && today.getMonthValue() == month && today.getYear() == year;
-        return day == 25 && month == 2 && year == 2023;
+        return today.getDayOfMonth() == day && today.getMonthValue() == month && today.getYear() == year;
     }
 }

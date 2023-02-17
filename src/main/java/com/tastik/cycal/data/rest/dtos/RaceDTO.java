@@ -21,4 +21,10 @@ public record RaceDTO(
                 detailsLink.toDomain()
         );
     }
+
+    public boolean isRoadRace() {
+        return ROAD_RACE.equals(colourCode);
+    }
+
+    private static final String ROAD_RACE = "road";
 }
