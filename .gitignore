@@ -2,7 +2,7 @@
 *.class
 
 # Build
-/build
+build
 
 # Log file
 *.log
