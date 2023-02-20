@@ -20,8 +20,11 @@ import static java.util.Objects.nonNull;
 @Service
 public class SourceReader implements RacesReader {
 
-    @Value("${source.url:https://www.uci.org/api/calendar/upcoming}")
-    private String url;
+    @Value("${source.url:https://www.uci.org}")
+    private String host;
+
+    @Value("${source.api:/api/calendar/upcoming}")
+    private String api;
 
 //    @Value("${race.discipline:ROA}")
 //    private String discipline;
@@ -33,7 +36,7 @@ public class SourceReader implements RacesReader {
 
         RestTemplate restTemplate = new RestTemplate();
 
-        ResponseDTO response = restTemplate.getForObject(url, ResponseDTO.class);
+        ResponseDTO response = restTemplate.getForObject(url(), ResponseDTO.class);
 
         return nonNull(response)
                 ? extractTodayRacesFrom(response)
@@ -53,8 +56,9 @@ public class SourceReader implements RacesReader {
     }
 
     private String url() {
-        return """
-                %s?raceClass=%s
-                """.formatted(url, raceClass);
+        return host+api;
+//        return """
+//                %s?raceClass=%s
+//                """.formatted(host+api, raceClass);
     }
 }

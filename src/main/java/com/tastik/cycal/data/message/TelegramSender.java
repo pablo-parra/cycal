@@ -1,4 +1,4 @@
-package com.tastik.cycal.data.mail;
+package com.tastik.cycal.data.message;
 
 import com.tastik.cycal.core.domain.Races;
 import com.tastik.cycal.core.interactors.RacesSender;
@@ -15,11 +15,14 @@ import java.net.URL;
 import java.net.URLConnection;
 
 @Component
-public class MailSender implements RacesSender {
+public class TelegramSender implements RacesSender {
     @Value("${telegram.bot.token}")
     private String TELEGRAM_BOT_TOKEN;
     @Value("${telegram.channel.id}")
     private String TELEGRAM_CHANNEL_ID;
+
+    @Value("${source.url:https://www.uci.org}")
+    private String host;
 
     @Override
     public void send(Races races) {
@@ -27,26 +30,40 @@ public class MailSender implements RacesSender {
             String urlString = "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s&parse_mode=MarkdownV2";
 
             StringBuilder messageContent = new StringBuilder();
-            messageContent.append("*ROAD RACES TODAY:*");
-            messageContent.append("");
+            messageContent
+                    .append("*ROAD RACES TODAY:*")
+                    .append("%0A");
             races.races().forEach(
                     race -> messageContent
                             .append("- ")
+                            .append("[")
                             .append(race.name())
+                            .append("]")
+                            .append("(")
+                            .append(host+race.details().url())
+                            .append(")")
                             .append(" (")
                             .append(race.dates())
                             .append(").")
-                            .append("")
+                            .append("%0A")
+//                    race -> messageContent.append("""
+//                            - %s (%s)
+//                            """.formatted(race.name(), race.dates())
+//                    )
             );
+
             urlString = String.format(
                     urlString,
                     TELEGRAM_BOT_TOKEN,
                     TELEGRAM_CHANNEL_ID,
-                    messageContent.toString()
-                            .replace("-", "\\-")
-                            .replace("(", "\\(")
-                            .replace(")", "\\)")
-                            .replace(".", "\\.")
+                    format(messageContent)
+//                    encodedMessage.toString()
+//                            .replace("-", "\\-")
+//                            .replace("(", "\\(")
+//                            .replace(")", "\\)")
+//                            .replace(".", "\\.")
+//                            .replace("#", "\\#")
+//                            .replace("`", "\\`")
 //                            .replace("*", "\\*")
             );
             URL url = new URL(urlString);
@@ -62,8 +79,23 @@ public class MailSender implements RacesSender {
             LOG.info("Telegram response: {}", response);
 
         } catch (Exception ex) {
-            LOG.error("Error Sending Email {}", ex.getMessage());
+            LOG.error("Error Sending Message {}", ex.getMessage());
         }
     }
-    private static final Logger LOG = LoggerFactory.getLogger(MailSender.class);
+
+    private static String format(StringBuilder message) {
+//        return URLEncoder.encode(message.toString(), StandardCharsets.UTF_8)
+        return message.toString()
+                .replace("-", "\\-")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replace(".", "\\.")
+                .replace("#", "\\#")
+                .replace("`", "\\`")
+                .replace("[", "\\[")
+                .replace("]", "\\]");
+//                            .replace("*", "\\*")
+    }
+
+    private static final Logger LOG = LoggerFactory.getLogger(TelegramSender.class);
 }

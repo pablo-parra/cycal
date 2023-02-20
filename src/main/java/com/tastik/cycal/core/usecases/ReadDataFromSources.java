@@ -11,8 +11,11 @@ import org.springframework.stereotype.Component;
 @Qualifier("ReadDataFromSources")
 public class ReadDataFromSources implements UseCase<Races> {
 
-    @Autowired
     private RacesReader reader;
+
+    public ReadDataFromSources(@Autowired RacesReader reader) {
+        this.reader = reader;
+    }
 
     @Override
     public Races execute() {

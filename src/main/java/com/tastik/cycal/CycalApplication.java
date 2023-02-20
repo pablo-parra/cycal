@@ -5,8 +5,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class CycalApplication {
 
     public static void main(String[] args) {
