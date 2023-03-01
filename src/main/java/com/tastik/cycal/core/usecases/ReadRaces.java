@@ -8,12 +8,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-@Qualifier("ReadDataFromSources")
-public class ReadDataFromSources implements UseCase<Races> {
+@Qualifier("ReadRaces")
+public class ReadRaces implements UseCase<Races> {
 
     private RacesReader reader;
 
-    public ReadDataFromSources(@Autowired RacesReader reader) {
+    public ReadRaces(@Autowired RacesReader reader) {
         this.reader = reader;
     }
 

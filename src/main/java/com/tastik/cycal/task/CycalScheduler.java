@@ -1,22 +1,29 @@
 package com.tastik.cycal.task;
 
-import com.tastik.cycal.core.domain.Races;
+import com.tastik.cycal.core.domain.Report;
 import com.tastik.cycal.core.interactors.UseCase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("remote")
 public class CycalScheduler {
 
-    private UseCase<Races> sendTodayRaces;
+    private static final Logger LOG = LoggerFactory.getLogger(CycalScheduler.class);
+    private final UseCase<Report> sendReport;
 
-    public CycalScheduler(@Qualifier("SendTodayRoadRaces")UseCase<Races> sendTodayRaces) {
-        this.sendTodayRaces = sendTodayRaces;
+    public CycalScheduler(@Qualifier("SendReport")UseCase<Report> sendReport) {
+        this.sendReport = sendReport;
     }
 
     @Scheduled(cron = "${cron.expression}")
     public void report() {
-        this.sendTodayRaces.execute();
+        LOG.info("Starting report...");
+        this.sendReport.execute();
+        LOG.info("Report job DONE!");
     }
 }

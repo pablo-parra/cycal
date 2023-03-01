@@ -14,4 +14,8 @@ public record DayDTO(
         final var today = LocalDate.now();
         return today.getDayOfMonth() == day && today.getMonthValue() == month && today.getYear() == year;
     }
+
+    public boolean matchesDay(int day) {
+        return this.day == day;
+    }
 }

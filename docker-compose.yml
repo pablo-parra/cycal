@@ -1,0 +1,23 @@
+---
+version: "3.8"
+
+services:
+
+  cycal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+#    environment:
+#      CYCAL_BOT_TOKEN: [YOUR_BOT_TOKEN]
+#      CYCAL_CHANNEL_ID: [YOUR_CHANNEL_ID]
+    ports:
+      - target: 8080
+        published: 8080
+      - target: 5005
+        published: 5005
+    networks:
+      - cycal-network
+    tty: true
+
+networks:
+  cycal-network:

@@ -1,5 +1,6 @@
 package com.tastik.cycal.data.rest.dtos;
 
+import com.tastik.cycal.core.domain.CompetitionProperties;
 import com.tastik.cycal.core.domain.Race;
 
 public record RaceDTO(
@@ -11,14 +12,15 @@ public record RaceDTO(
         DetailsDTO detailsLink,
         boolean isUciEvent
 ) {
-    public Race toDomain() {
+    public Race toDomain(CompetitionProperties competitionProperties) {
         return new Race(
                 name,
                 colourCode,
                 venue,
                 country,
                 dates,
-                detailsLink.toDomain()
+                detailsLink.toDomain(),
+                competitionProperties
         );
     }
 

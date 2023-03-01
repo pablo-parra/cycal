@@ -1,6 +1,7 @@
 package com.tastik.cycal.service;
 
 import com.tastik.cycal.core.domain.Races;
+import com.tastik.cycal.core.domain.Report;
 import com.tastik.cycal.core.interactors.UseCase;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +18,13 @@ public class Controller {
     private UseCase<Races> readRaces;
 
 //    @Autowired
-    private UseCase<Races> sendTodayRaces;
+    private UseCase<Report> sendReport;
 
     public Controller(
-            @Qualifier("ReadDataFromSources") UseCase<Races> readRaces,
-            @Qualifier ("SendTodayRoadRaces") UseCase<Races> sendTodayRaces) {
+            @Qualifier("ReadRaces") UseCase<Races> readRaces,
+            @Qualifier ("SendReport") UseCase<Report> sendReport) {
         this.readRaces = readRaces;
-        this.sendTodayRaces = sendTodayRaces;
+        this.sendReport = sendReport;
     }
 
     @GetMapping("/health")
@@ -38,8 +39,8 @@ public class Controller {
         return ResponseEntity.ok().body(this.readRaces.execute());
     }
 
-    @PostMapping("/sendTodayRaces")
-    public ResponseEntity<Object> sendTodayRaces() {
-        return ResponseEntity.ok().body(this.sendTodayRaces.execute());
+    @PostMapping("/sendReport")
+    public ResponseEntity<Object> sendReport() {
+        return ResponseEntity.ok().body(this.sendReport.execute());
     }
 }

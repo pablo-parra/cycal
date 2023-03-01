@@ -9,4 +9,7 @@ public record MonthDTO(
         boolean isCurrentMonth,
         List<DayDTO> items
 ) {
+    public boolean matchesMonth(int month) {
+        return this.month == month;
+    }
 }

@@ -1,0 +1,310 @@
+{
+  "competitionDetails": {
+    "name": "UAE Tour",
+    "dates": "20 Feb - 26 Feb 2023",
+    "venue": "",
+    "country": "United Arab Emirates",
+    "competitionClass": "2.UWT - Stages - UCI WorldTour",
+    "website": {
+      "title": "www.theuaetour.com",
+      "url": "https://www.theuaetour.com",
+      "isExternal": true
+    },
+    "email": {
+      "title": "luca.papini@rcs.it; f.damico@rcssportsandevents.com",
+      "url": "mailto:luca.papini@rcs.it;f.damico@rcssportsandevents.com",
+      "isExternal": true
+    }
+  },
+  "schedule": {
+    "items": [
+      {
+        "date": "20 Feb 2023",
+        "races": [
+          {
+            "raceName": "Stage 1",
+            "raceType": "Individual Road Race",
+            "raceClass": "2.UWT - Stages - UCI WorldTour",
+            "category": "Men Elite"
+          }
+        ]
+      },
+      {
+        "date": "21 Feb 2023",
+        "races": [
+          {
+            "raceName": "Stage 2",
+            "raceType": "Team Time Trial",
+            "raceClass": "2.UWT - Stages - UCI WorldTour",
+            "category": "Men Elite"
+          }
+        ]
+      },
+      {
+        "date": "22 Feb 2023",
+        "races": [
+          {
+            "raceName": "Stage 3",
+            "raceType": "Individual Road Race",
+            "raceClass": "2.UWT - Stages - UCI WorldTour",
+            "category": "Men Elite"
+          }
+        ]
+      },
+      {
+        "date": "23 Feb 2023",
+        "races": [
+          {
+            "raceName": "Stage 4",
+            "raceType": "Individual Road Race",
+            "raceClass": "2.UWT - Stages - UCI WorldTour",
+            "category": "Men Elite"
+          }
+        ]
+      },
+      {
+        "date": "24 Feb 2023",
+        "races": [
+          {
+            "raceName": "Stage 5",
+            "raceType": "Individual Road Race",
+            "raceClass": "2.UWT - Stages - UCI WorldTour",
+            "category": "Men Elite"
+          }
+        ]
+      },
+      {
+        "date": "25 Feb 2023",
+        "races": [
+          {
+            "raceName": "Stage 6",
+            "raceType": "Individual Road Race",
+            "raceClass": "2.UWT - Stages - UCI WorldTour",
+            "category": "Men Elite"
+          }
+        ]
+      },
+      {
+        "date": "26 Feb 2023",
+        "races": [
+          {
+            "raceName": "Stage 7",
+            "raceType": "Individual Road Race",
+            "raceClass": "2.UWT - Stages - UCI WorldTour",
+            "category": "Men Elite"
+          },
+          {
+            "raceName": "Final Classification",
+            "raceType": "Individual Road Race",
+            "raceClass": "2.UWT - Stages - UCI WorldTour",
+            "category": "Men Elite"
+          }
+        ]
+      }
+    ]
+  },
+  "assignments": [
+    {
+      "name": "STUPPACHER Peter",
+      "role": "President of the Commissaires Panel",
+      "nationality": "AUT"
+    },
+    {
+      "name": "MARTIN SANZ Juan",
+      "role": "Member of the Commissaires Panel",
+      "nationality": "ESP"
+    },
+    {
+      "name": "DONIKE Alexander",
+      "role": "Member of the Commissaires Panel",
+      "nationality": "GER"
+    }
+  ],
+  "competitionName": "UAE Tour",
+  "results": {
+    "accordion": [
+      {
+        "results": [
+          {
+            "title": "Stage Classification",
+            "eventCode": "D2EV306477",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage General Classification",
+            "eventCode": "D2EV300999",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Points Classification",
+            "eventCode": "D2EV304969",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Points Classification",
+            "eventCode": "D2EV306231",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Mountain Classification",
+            "eventCode": "D2EV301601",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Mountain Classification",
+            "eventCode": "D2EV305617",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Youth Classification",
+            "eventCode": "D2EV304156",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Youth Classification",
+            "eventCode": "D2EV298887",
+            "raceType": "A"
+          }
+        ],
+        "label": "Stage 1"
+      },
+      {
+        "results": [
+          {
+            "title": "Stage Classification",
+            "eventCode": "D2EV306136",
+            "raceType": "T"
+          },
+          {
+            "title": "Stage General Classification",
+            "eventCode": "D2EV299928",
+            "raceType": "T"
+          },
+          {
+            "title": "Stage Points Classification",
+            "eventCode": "D2EV302343",
+            "raceType": "T"
+          },
+          {
+            "title": "Overall Points Classification",
+            "eventCode": "D2EV301351",
+            "raceType": "T"
+          },
+          {
+            "title": "Stage Mountain Classification",
+            "eventCode": "D2EV297619",
+            "raceType": "T"
+          },
+          {
+            "title": "Overall Mountain Classification",
+            "eventCode": "D2EV302564",
+            "raceType": "T"
+          },
+          {
+            "title": "Stage Youth Classification",
+            "eventCode": "D2EV302661",
+            "raceType": "T"
+          },
+          {
+            "title": "Overall Youth Classification",
+            "eventCode": "D2EV298622",
+            "raceType": "T"
+          }
+        ],
+        "label": "Stage 2"
+      },
+      {
+        "results": [
+          {
+            "title": "Stage Classification",
+            "eventCode": "D2EV303091",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage General Classification",
+            "eventCode": "D2EV302842",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Points Classification",
+            "eventCode": "D2EV306512",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Points Classification",
+            "eventCode": "D2EV304318",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Mountain Classification",
+            "eventCode": "D2EV298054",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Mountain Classification",
+            "eventCode": "D2EV304783",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Youth Classification",
+            "eventCode": "D2EV306507",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Youth Classification",
+            "eventCode": "D2EV298155",
+            "raceType": "A"
+          }
+        ],
+        "label": "Stage 3"
+      },
+      {
+        "results": [
+          {
+            "title": "Stage Classification",
+            "eventCode": "D2EV303581",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage General Classification",
+            "eventCode": "D2EV303756",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Points Classification",
+            "eventCode": "D2EV298790",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Points Classification",
+            "eventCode": "D2EV303315",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Mountain Classification",
+            "eventCode": "D2EV301756",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Mountain Classification",
+            "eventCode": "D2EV303811",
+            "raceType": "A"
+          },
+          {
+            "title": "Stage Youth Classification",
+            "eventCode": "D2EV305672",
+            "raceType": "A"
+          },
+          {
+            "title": "Overall Youth Classification",
+            "eventCode": "D2EV297970",
+            "raceType": "A"
+          }
+        ],
+        "label": "Stage 4"
+      }
+    ],
+    "discipline": "road",
+    "disciplineCode": "ROA"
+  }
+}
