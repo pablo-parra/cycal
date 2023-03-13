@@ -18,12 +18,12 @@ import static java.util.Objects.nonNull;
 @Service
 public class RankingReaderImpl implements RankingReader {
 
-
     @Value("${source.url:https://www.uci.org}")
     private String host;
 
     @Value("${source.ranking:/api/rankings/details}")
     private String ranking;
+
     RestTemplate restTemplate;
 
     public RankingReaderImpl(RestTemplate restTemplate) {

@@ -1,14 +1,19 @@
 package com.tastik.cycal.data.message;
 
 import com.tastik.cycal.core.domain.Flags;
+import com.tastik.cycal.core.domain.IndividualRankingPosition;
 import com.tastik.cycal.core.domain.Race;
 import com.tastik.cycal.core.domain.RaceDay;
-import com.tastik.cycal.core.domain.IndividualRankingPosition;
 import com.tastik.cycal.core.domain.Report;
+import com.tastik.cycal.core.domain.Stage;
+import com.tastik.cycal.core.domain.StageResults;
 import com.tastik.cycal.core.domain.TeamRankingPosition;
+import com.tastik.cycal.core.domain.results.RaceResult;
 import com.tastik.cycal.core.interactors.ReportSender;
+import com.tastik.cycal.core.interactors.ResultsReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -17,31 +22,47 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
+import static java.util.Objects.nonNull;
+
 @Component
 public class TelegramSender implements ReportSender {
+    private static final String GENERAL_CLASSIFICATION = "General Classification";
+    private static final String STAGE_CLASSIFICATION = "Stage Classification";
+    private static final String FINAL_CLASSIFICATION = "Final Classification";
+    private static final String PLUS = "\\%2B";
+    private static final String ZERO = "0";
     @Value("${telegram.bot.token}")
     private String TELEGRAM_BOT_TOKEN;
     @Value("${telegram.channel.id}")
     private String TELEGRAM_CHANNEL_ID;
-
+    @Value("${telegram.links.enabled}")
+    private boolean TELEGRAM_LINKS_ENABLED;
+    @Value("${telegram.general.classification.positions.show:5}")
+    private int generalClassificationPositions;
     @Value("${telegram.host:https://api.telegram.org}")
     private String HOST;
 
     RestTemplate restTemplate;
 
-    public TelegramSender() {
+    ResultsReader resultsReader;
+
+    public TelegramSender(@Autowired ResultsReader resultsReader) {
         this.restTemplate = new RestTemplate();
+        this.resultsReader = resultsReader;
     }
 
     @Override
@@ -51,7 +72,13 @@ public class TelegramSender implements ReportSender {
 
             StringBuilder messageContent = new StringBuilder();
 
+            formatYesterdayResults(report, messageContent);
+
+            messageContent.append(NEW_LINE).append(NEW_LINE).append(NEW_LINE);
+
             formatTodayRacesDataWith(report, messageContent);
+
+            messageContent.append(NEW_LINE).append(NEW_LINE).append(NEW_LINE);
 
             formatRankingDataWith(report, messageContent);
 
@@ -63,16 +90,38 @@ public class TelegramSender implements ReportSender {
             );
 
 
-            URL url = new URL(urlString);
-            URLConnection conn = url.openConnection();
+//            URL url = new URL(urlString);
+//            URLConnection conn = url.openConnection();
+//            StringBuilder sb = new StringBuilder();
+//            InputStream is = new BufferedInputStream(conn.getInputStream());
+//            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+//            String inputLine = "";
+//            while ((inputLine = br.readLine()) != null) {
+//                sb.append(inputLine);
+//            }
+//            String response = sb.toString();
+
+            // -------------------------------------
+
+            ProcessBuilder processBuilder = new ProcessBuilder();
+            processBuilder.command("curl", "-X", "GET", urlString);
+            Process process = processBuilder.start();
+
             StringBuilder sb = new StringBuilder();
-            InputStream is = new BufferedInputStream(conn.getInputStream());
+            InputStream is = new BufferedInputStream(process.getInputStream());
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String inputLine = "";
             while ((inputLine = br.readLine()) != null) {
                 sb.append(inputLine);
             }
             String response = sb.toString();
+
+            int exitCode = process.waitFor();
+            LOG.info("CURL exit code: {}", exitCode);
+            process.destroy();
+
+            // -------------------------------------
+
 //            final var response = restTemplate.exchange(url.toString(), HttpMethod.GET, null, String.class);
 
 //            UriComponentsBuilder telegramRequestBuilder = UriComponentsBuilder.fromHttpUrl(
@@ -88,11 +137,277 @@ public class TelegramSender implements ReportSender {
             LOG.info("Telegram response: {}", response/*.getBody()*/);
 
         } catch (Exception ex) {
-            LOG.error("Error Sending Message {}", ex.getMessage());
+            LOG.error("Error Sending Message to TELEGRAM: {}", ex.getMessage());
         }
     }
 
-    private static void formatTodayRacesDataWith(Report report, StringBuilder messageContent) {
+    private void formatYesterdayResults(Report report, StringBuilder messageContent) {
+        try {
+            final var results = new StringBuilder();
+
+            report.races().yesterdayRaces().forEach(
+                    race -> {
+                        if (race.isMultiDayRace()) {
+                            formatMultiDayRaceResultsWith(results, race);
+                        }
+                        if (race.isOneDayRace()) {
+                            formatOneDayRaceResultsWith(results, race);
+                        }
+                    }
+            );
+
+            if (!results.isEmpty()) {
+                results.insert(0, NEW_LINE);
+                results.insert(0, "*YESTERDAY RACES RESULTS:*");
+            }
+
+            messageContent.append(results);
+
+        } catch (Exception ex) {
+            LOG.error("There was a problem formatting TODAY RACES DATA: {}", ex.getMessage());
+        }
+    }
+
+    private void formatMultiDayRaceResultsWith(StringBuilder results, Race race) {
+        try {
+            final var yesterdayStage = race.yesterdayStage();
+            if (yesterdayStage.isPresent()) {
+                raceLineWith(results, race);
+                if (race.isNationalChampionship()) {
+                    formatNationalChampionshipResultsWith(results, race, yesterdayStage.get());
+                } else {
+                    formatGrandTourResultsWith(results, race, yesterdayStage.get());
+                }
+            }
+        } catch (Exception ex) {
+            LOG.error("There was a problem formatting RESULTS DATA of race {}: {}", race.name(), ex.getMessage());
+        }
+    }
+
+    private void formatOneDayRaceResultsWith(StringBuilder results, Race race) {
+        try {
+            final var yesterdayStage = race.yesterdayStage();
+            if (yesterdayStage.isPresent()) {
+                raceLineWith(results, race);
+
+                yesterdayStage.get().races().forEach(competition -> {
+                    final var dayResults = race.properties().results().accordion().stream().filter(item -> item.label().equals(competition.raceName())).findFirst();
+
+                    if (dayResults.isPresent()) {
+                        final var finalClassificationResult = dayResults.get().results().stream().filter(result -> GENERAL_CLASSIFICATION.equals(result.title())).findFirst().orElseThrow();
+                        final var finalClassificationCode = finalClassificationResult.eventCode();
+                        final var finalClassification = resultsReader.readRaceResults(finalClassificationCode);
+                        if (finalClassification.isPresent()) {
+//                            final var podium = finalClassification.get().calculatePodium();
+                            final var finalResults = finalClassification.get().results();
+                            for (int i = 0; i < 3/*podium.positions().size()*/; i++) {
+//                                results.append(TAB)
+//                                        .append(rankingEmojiBy(podium.positions().get(i).position()))
+//                                        .append(podium.positions().get(i).firstName())
+//                                        .append(" ")
+//                                        .append(podium.positions().get(i).lastName())
+//                                        .append(" ")
+//                                        .append(podium.positions().get(i).time())
+//                                        .append(NEW_LINE);
+                                results.append(rankingEmojiBy(Integer.parseInt(finalResults.get(i).values().rank())))
+                                        .append(finalResults.get(i).values().firstname())
+                                        .append(" ")
+                                        .append(finalResults.get(i).values().lastname())
+                                        .append(" ")
+                                        .append(calculateTime(finalResults, i))
+                                        .append(NEW_LINE);
+                            }
+                            results.append(NEW_LINE);
+                        }
+                    }
+                });
+
+            }
+        } catch (Exception ex) {
+            LOG.error("There was a problem formatting RESULTS DATA of race {}: {}", race.name(), ex.getMessage());
+        }
+    }
+
+    private void formatGrandTourResultsWith(StringBuilder results, Race race, RaceDay raceDay) {
+        raceDay.races().forEach(competition -> {
+            if (competition.isFinalClassification()) return;
+
+            final var dayResults = race.properties().results().accordion().stream().filter(item -> item.label().equals(competition.raceName())).findFirst();
+            if (dayResults.isPresent()) {
+                formatStageWinner(results, race, competition, dayResults.get());
+                if (!raceIsFinished(raceDay)) formatGeneralClassification(results, race, dayResults.get());
+            } else {
+                LOG.info("No results found in 'results' object for {}: {}", race.name(), competition.raceName());
+            }
+        });
+
+        if (raceIsFinished(raceDay)) {
+            formatFinalClassification(results, race);
+        }
+    }
+
+    private void formatFinalClassification(StringBuilder results, Race race) {
+        final var finalResults = race.properties().results().accordion().stream().filter(item -> FINAL_CLASSIFICATION.equals(item.label())).findFirst();
+        finalResults.ifPresent(stageResults -> formatGeneralClassification(results, race, stageResults));
+    }
+
+    private boolean raceIsFinished(RaceDay raceDay) {
+        return raceDay.races().stream().anyMatch(Stage::isFinalClassification);
+    }
+
+    private void formatStageWinner(StringBuilder results, Race race, Stage competition, StageResults dayResults) {
+        try {
+            final var stageClassificationResult = dayResults.results().stream().filter(result -> STAGE_CLASSIFICATION.equals(result.title())).findFirst().orElseThrow();
+            final var stageClassificationCode = stageClassificationResult.eventCode();
+            final var stageClassification = resultsReader.readRaceResults(stageClassificationCode);
+
+            results.append(TAB)
+                    .append(competition.raceName()).append(":");
+
+            if (stageClassification.isPresent() && !stageClassification.get().results().isEmpty() && nonNull(stageClassification.get().podium())) {
+                final var winner = stageClassification.get().first().orElseThrow();
+                results.append(" ").append("🏆")
+                        .append(" ").append(winner.firstname()).append(" ").append(winner.lastname()).append(" ")
+                        .append(NEW_LINE);
+            } else {
+                LOG.info("No results available for {} of {} (EVENT CODE: {})", competition.raceName(), race.name(), stageClassificationCode);
+                results.append(TAB)
+                        .append(" ")
+                        .append("No results available ☹️")
+                        .append(NEW_LINE);
+            }
+
+        } catch (Exception ex) {
+            LOG.error("There was a problem formatting the WINNER of the {} of {}: {}", competition.raceName(), race.name(), ex.getMessage());
+        }
+    }
+
+    private void formatGeneralClassification(StringBuilder results, Race race, StageResults dayResults) {
+        try {
+            final var generalClassificationReference = dayResults.results().stream().filter(result -> Objects.nonNull(result.title()) && result.title().contains(GENERAL_CLASSIFICATION)).findFirst().orElseThrow();
+            final var generalClassificationCode = generalClassificationReference.eventCode();
+            final var generalClassificationResults = resultsReader.readRaceResults(generalClassificationCode);
+            results.append("⭐️").append(" G.C.:").append(NEW_LINE);
+            if (generalClassificationResults.isPresent() && !generalClassificationResults.get().results().isEmpty() && nonNull(generalClassificationResults.get().podium())) {
+
+                final var generalClassification = generalClassificationResults.get().results();
+
+                for (int i = 0; i < generalClassificationPositions; i++) {
+                    results.append(TAB)
+                            .append(rankingEmojiBy(Integer.parseInt(generalClassification.get(i).values().rank())))
+                            .append(generalClassification.get(i).values().firstname())
+                            .append(" ")
+                            .append(generalClassification.get(i).values().lastname())
+                            .append(" ")
+                            .append(calculateTime(generalClassification, i))
+                            .append(NEW_LINE);
+                }
+                results.append(NEW_LINE);
+            } else {
+                LOG.info("No GENERAL CLASSIFICATION results available for {} (EVENT CODE: {})", race.name(), generalClassificationCode);
+                results.append(TAB)
+                        .append(" ")
+                        .append("No results available ☹️")
+                        .append(NEW_LINE);
+            }
+        } catch (Exception ex) {
+            LOG.error("There was a problem formatting the GENERAL CLASSIFICATION of {}: {}", race.name(), ex.getMessage());
+        }
+    }
+
+    private static String calculateTime(List<RaceResult> generalClassification, int i) {
+        final var time = generalClassification.get(i).values().result().trim();
+        final var winnerTime = generalClassification.get(0).values().result().trim();
+
+        if (isTheWinner(i)) return time;
+
+        if (differenceAlreadyCalculatedIn(time)) return time.startsWith("+") ? time.replace("+", PLUS) : PLUS.concat(time);
+
+        return difference(winnerTime, time);
+    }
+
+    private static boolean isTheWinner(int i) {
+        return i == 0;
+    }
+
+    private static boolean differenceAlreadyCalculatedIn(String time) {
+        return !time.matches(".*:.*:.*");
+    }
+
+    private static String difference(String timeA, String timeB) {
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+            Date date1 = simpleDateFormat.parse(timeA);
+            Date date2 = simpleDateFormat.parse(timeB);
+
+            long differenceInMilliSeconds
+                    = Math.abs(date2.getTime() - date1.getTime());
+
+            long differenceInHours
+                    = (differenceInMilliSeconds / (60 * 60 * 1000))
+                    % 24;
+
+            long differenceInMinutes
+                    = (differenceInMilliSeconds / (60 * 1000)) % 60;
+
+            long differenceInSeconds
+                    = (differenceInMilliSeconds / 1000) % 60;
+
+            if (differenceInHours > 0) {
+                return String.format("%s%s:%s:%s",
+                        PLUS,
+                        differenceInHours,
+                        withTwoDigits(differenceInMinutes),
+                        withTwoDigits(differenceInSeconds)
+                );
+            }
+            return String.format("%s%s:%s",
+                    PLUS,
+                    withTwoDigits(differenceInMinutes),
+                    withTwoDigits(differenceInSeconds)
+            );
+
+        } catch (Exception ex) {
+            LOG.error("There was a problem getting difference between {} and {}: {}", timeA, timeB, ex.getMessage());
+            return "---";
+        }
+    }
+
+    private static Object withTwoDigits(long number) {
+        return number < 10 ? ZERO.concat(String.valueOf(number)) : number;
+    }
+
+    private void formatNationalChampionshipResultsWith(StringBuilder results, Race race, RaceDay raceDay) {
+        raceDay.races().forEach(competition -> {
+            final var dayResults = race.properties().results().accordion().stream().filter(item -> item.label().equals(competition.raceName())).findFirst();
+
+            if (dayResults.isPresent()) {
+                final var generalClassificationResult = dayResults.get().results().stream().filter(result -> "General Classification".equals(result.title())).findFirst().orElseThrow();
+                final var generalClassificationCode = generalClassificationResult.eventCode();
+                final var generalClassification = resultsReader.readRaceResults(generalClassificationCode);
+                if (generalClassification.isPresent()) {
+                    final var podium = generalClassification.get().calculatePodium();
+
+                    for (int i = 0; i < podium.positions().size(); i++) {
+                        results.append(TAB)
+                                .append(rankingEmojiBy(podium.positions().get(i).position()))
+                                .append(podium.positions().get(i).firstName())
+                                .append(" ")
+                                .append(podium.positions().get(i).lastName())
+                                .append(" ")
+                                .append(podium.positions().get(i).time())
+                                .append(NEW_LINE);
+                    }
+                    results.append(NEW_LINE);
+                }
+            } else {
+                LOG.info("No results found in 'results' object for {}: {}", race.name(), competition.raceName());
+            }
+        });
+
+    }
+
+    private void formatTodayRacesDataWith(Report report, StringBuilder messageContent) {
         try {
             messageContent
                     .append("*ROAD RACES TODAY:*")
@@ -113,23 +428,15 @@ public class TelegramSender implements ReportSender {
         }
     }
 
-    private static void formatOneDayRaceDataWith(StringBuilder messageContent, Race race) {
+    private void formatMultiDayRaceDataWith(StringBuilder messageContent, Race race) {
         try {
-            raceLineWith(messageContent, race);
-        } catch (Exception ex) {
-            LOG.error("Unable to format data of race {}: {}", race.name(), ex.getMessage());
-        }
-    }
-
-    private static void formatMultiDayRaceDataWith(StringBuilder messageContent, Race race) {
-        try {
-            final var todayItem = race.properties().schedule().items().stream().filter(item -> item.date().equals(LocalDate.now())).findFirst();
-            if (todayItem.isPresent()) {
+            final var todayStage = race.todayStage();
+            if (todayStage.isPresent()) {
                 raceLineWith(messageContent, race);
                 if (race.isNationalChampionship()) {
-                    formatNationalChampionshipDataWith(messageContent, todayItem);
+                    formatNationalChampionshipDataWith(messageContent, todayStage);
                 } else {
-                    formatGrandTourDataWith(messageContent, race, todayItem);
+                    formatGrandTourDataWith(messageContent, race, todayStage);
                 }
             }
         } catch (Exception ex) {
@@ -137,11 +444,20 @@ public class TelegramSender implements ReportSender {
         }
     }
 
-    private static void raceLineWith(StringBuilder messageContent, Race race) {
+    private void formatOneDayRaceDataWith(StringBuilder messageContent, Race race) {
+        try {
+            raceLineWith(messageContent, race);
+        } catch (Exception ex) {
+            LOG.error("Unable to format data of race {}: {}", race.name(), ex.getMessage());
+        }
+    }
+
+    private void raceLineWith(StringBuilder messageContent, Race race) {
         messageContent.append(flagOrDefault(race)).append(" ").append(race.name());
-        if (race.hasUrl()) {
+        if (TELEGRAM_LINKS_ENABLED && race.hasUrl()) {
             messageContent.append(" ").append("[➕]").append("(").append(race.url()).append(")");
         }
+        messageContent.append(":");
         messageContent.append(NEW_LINE);
     }
 
@@ -155,23 +471,29 @@ public class TelegramSender implements ReportSender {
     private static void formatGrandTourDataWith(StringBuilder messageContent, Race race, Optional<RaceDay> todayItem) {
         messageContent.append(TAB)
                 .append("🚴").append(" ")
-                .append(todayItem.get().races().stream().findFirst().orElseThrow().raceName())
+                .append(todayItem.get().races().stream().filter(Stage::isStageRace).findFirst().orElseThrow().raceName())
                 .append("/").append(race.properties().schedule().items().size());
-        messageContent.append(NEW_LINE);
+        messageContent.append(NEW_LINE).append(NEW_LINE);
     }
 
     private void formatRankingDataWith(Report report, StringBuilder messageContent) {
-        messageContent.append("-------------------")
-                .append(NEW_LINE)
-                .append("*INDIVIDUAL RANKING UCI (points):*");
-        individualMenRanking(report, messageContent);
-        individualWomenRanking(report, messageContent);
+        if (isMonday()) {
+            messageContent.append("-------------------")
+                    .append(NEW_LINE)
+                    .append("*INDIVIDUAL RANKING UCI (points):*");
+            individualMenRanking(report, messageContent);
+            individualWomenRanking(report, messageContent);
 
-        messageContent.append("-------------------")
-                .append(NEW_LINE)
-                .append("*TEAM RANKING UCI (points):*");
-        teamMenRanking(report, messageContent);
-        teamWomenRanking(report, messageContent);
+            messageContent.append("-------------------")
+                    .append(NEW_LINE)
+                    .append("*TEAM RANKING UCI (points):*");
+            teamMenRanking(report, messageContent);
+            teamWomenRanking(report, messageContent);
+        }
+    }
+
+    private static boolean isMonday() {
+        return LocalDate.now().getDayOfWeek().equals(DayOfWeek.MONDAY);
     }
 
     private void individualMenRanking(Report report, StringBuilder messageContent) {
@@ -292,8 +614,17 @@ public class TelegramSender implements ReportSender {
             case 2:
                 emoji = MEDAL_TWO;
                 break;
-            default:
+            case 3:
                 emoji = MEDAL_THREE;
+                break;
+            case 4:
+                emoji = "4️⃣";
+                break;
+            case 5:
+                emoji = "5️⃣";
+                break;
+            default:
+                emoji = "⚪️";
         }
         return emoji;
     }
@@ -311,7 +642,8 @@ public class TelegramSender implements ReportSender {
                 .replace("]", "\\]")
                 .replace("_", "\\_")
                 .replace(">", "\\>")
-                .replace("+", "\\+");
+                .replace("+", "\\+")
+                .replace("&", "%26");
 //                            .replace("*", "\\*")
     }
 

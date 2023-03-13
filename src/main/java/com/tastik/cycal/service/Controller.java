@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class Controller {
 
 //    @Autowired
-    private UseCase<Races> readRaces;
+    private final UseCase<Races> readRaces;
 
 //    @Autowired
-    private UseCase<Report> sendReport;
+    private final UseCase<Report> sendReport;
 
     public Controller(
             @Qualifier("ReadRaces") UseCase<Races> readRaces,
