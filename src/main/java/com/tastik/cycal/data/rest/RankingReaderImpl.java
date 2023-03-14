@@ -1,8 +1,8 @@
 package com.tastik.cycal.data.rest;
 
-import com.tastik.cycal.core.domain.IndividualRanking;
-import com.tastik.cycal.core.domain.Ranking;
-import com.tastik.cycal.core.domain.TeamRanking;
+import com.tastik.cycal.core.domain.rankings.IndividualRanking;
+import com.tastik.cycal.core.domain.rankings.Ranking;
+import com.tastik.cycal.core.domain.rankings.TeamRanking;
 import com.tastik.cycal.core.interactors.RankingReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package com.tastik.cycal.core.domain;
+package com.tastik.cycal.core.domain.rankings;
 
 public record TeamRankingPosition(
         String teamName,

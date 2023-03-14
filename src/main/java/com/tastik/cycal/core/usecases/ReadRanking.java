@@ -1,6 +1,6 @@
 package com.tastik.cycal.core.usecases;
 
-import com.tastik.cycal.core.domain.Ranking;
+import com.tastik.cycal.core.domain.rankings.Ranking;
 import com.tastik.cycal.core.interactors.RankingReader;
 import com.tastik.cycal.core.interactors.UseCase;
 import org.springframework.beans.factory.annotation.Autowired;

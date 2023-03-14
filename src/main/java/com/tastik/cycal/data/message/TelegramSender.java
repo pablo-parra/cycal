@@ -1,13 +1,13 @@
 package com.tastik.cycal.data.message;
 
-import com.tastik.cycal.core.domain.Flags;
-import com.tastik.cycal.core.domain.IndividualRankingPosition;
-import com.tastik.cycal.core.domain.Race;
-import com.tastik.cycal.core.domain.RaceDay;
-import com.tastik.cycal.core.domain.Report;
-import com.tastik.cycal.core.domain.Stage;
-import com.tastik.cycal.core.domain.StageResults;
-import com.tastik.cycal.core.domain.TeamRankingPosition;
+import com.tastik.cycal.core.config.Flags;
+import com.tastik.cycal.core.domain.rankings.IndividualRankingPosition;
+import com.tastik.cycal.core.domain.races.Race;
+import com.tastik.cycal.core.domain.races.RaceDay;
+import com.tastik.cycal.core.domain.report.Report;
+import com.tastik.cycal.core.domain.races.Stage;
+import com.tastik.cycal.core.domain.races.StageResults;
+import com.tastik.cycal.core.domain.rankings.TeamRankingPosition;
 import com.tastik.cycal.core.domain.results.RaceResult;
 import com.tastik.cycal.core.interactors.ReportSender;
 import com.tastik.cycal.core.interactors.ResultsReader;
@@ -22,11 +22,9 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,8 +41,6 @@ public class TelegramSender implements ReportSender {
     private static final String GENERAL_CLASSIFICATION = "General Classification";
     private static final String STAGE_CLASSIFICATION = "Stage Classification";
     private static final String FINAL_CLASSIFICATION = "Final Classification";
-    private static final String PLUS = "\\%2B";
-    private static final String ZERO = "0";
     @Value("${telegram.bot.token}")
     private String TELEGRAM_BOT_TOKEN;
     @Value("${telegram.channel.id}")
@@ -55,7 +51,6 @@ public class TelegramSender implements ReportSender {
     private int generalClassificationPositions;
     @Value("${telegram.host:https://api.telegram.org}")
     private String HOST;
-
     RestTemplate restTemplate;
 
     ResultsReader resultsReader;
@@ -198,17 +193,8 @@ public class TelegramSender implements ReportSender {
                         final var finalClassificationCode = finalClassificationResult.eventCode();
                         final var finalClassification = resultsReader.readRaceResults(finalClassificationCode);
                         if (finalClassification.isPresent()) {
-//                            final var podium = finalClassification.get().calculatePodium();
                             final var finalResults = finalClassification.get().results();
                             for (int i = 0; i < 3/*podium.positions().size()*/; i++) {
-//                                results.append(TAB)
-//                                        .append(rankingEmojiBy(podium.positions().get(i).position()))
-//                                        .append(podium.positions().get(i).firstName())
-//                                        .append(" ")
-//                                        .append(podium.positions().get(i).lastName())
-//                                        .append(" ")
-//                                        .append(podium.positions().get(i).time())
-//                                        .append(NEW_LINE);
                                 results.append(rankingEmojiBy(Integer.parseInt(finalResults.get(i).values().rank())))
                                         .append(finalResults.get(i).values().firstname())
                                         .append(" ")
@@ -221,7 +207,6 @@ public class TelegramSender implements ReportSender {
                         }
                     }
                 });
-
             }
         } catch (Exception ex) {
             LOG.error("There was a problem formatting RESULTS DATA of race {}: {}", race.name(), ex.getMessage());
@@ -316,65 +301,19 @@ public class TelegramSender implements ReportSender {
     }
 
     private static String calculateTime(List<RaceResult> generalClassification, int i) {
-        final var time = generalClassification.get(i).values().result().trim();
+        final var time = generalClassification.get(i).values();
+
         final var winnerTime = generalClassification.get(0).values().result().trim();
 
-        if (isTheWinner(i)) return time;
+        if (isTheWinner(i)) return time.result();
 
-        if (differenceAlreadyCalculatedIn(time)) return time.startsWith("+") ? time.replace("+", PLUS) : PLUS.concat(time);
+        if (time.hasDifferenceAlreadyCalculated()) return time.startingWithAPlus();
 
-        return difference(winnerTime, time);
+        return time.differenceWith(winnerTime);
     }
 
     private static boolean isTheWinner(int i) {
         return i == 0;
-    }
-
-    private static boolean differenceAlreadyCalculatedIn(String time) {
-        return !time.matches(".*:.*:.*");
-    }
-
-    private static String difference(String timeA, String timeB) {
-        try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-            Date date1 = simpleDateFormat.parse(timeA);
-            Date date2 = simpleDateFormat.parse(timeB);
-
-            long differenceInMilliSeconds
-                    = Math.abs(date2.getTime() - date1.getTime());
-
-            long differenceInHours
-                    = (differenceInMilliSeconds / (60 * 60 * 1000))
-                    % 24;
-
-            long differenceInMinutes
-                    = (differenceInMilliSeconds / (60 * 1000)) % 60;
-
-            long differenceInSeconds
-                    = (differenceInMilliSeconds / 1000) % 60;
-
-            if (differenceInHours > 0) {
-                return String.format("%s%s:%s:%s",
-                        PLUS,
-                        differenceInHours,
-                        withTwoDigits(differenceInMinutes),
-                        withTwoDigits(differenceInSeconds)
-                );
-            }
-            return String.format("%s%s:%s",
-                    PLUS,
-                    withTwoDigits(differenceInMinutes),
-                    withTwoDigits(differenceInSeconds)
-            );
-
-        } catch (Exception ex) {
-            LOG.error("There was a problem getting difference between {} and {}: {}", timeA, timeB, ex.getMessage());
-            return "---";
-        }
-    }
-
-    private static Object withTwoDigits(long number) {
-        return number < 10 ? ZERO.concat(String.valueOf(number)) : number;
     }
 
     private void formatNationalChampionshipResultsWith(StringBuilder results, Race race, RaceDay raceDay) {
@@ -630,7 +569,6 @@ public class TelegramSender implements ReportSender {
     }
 
     private static String escapeCharactersOf(StringBuilder message) {
-//        return URLEncoder.encode(message.toString(), StandardCharsets.UTF_8)
         return message.toString()
                 .replace("-", "\\-")
                 .replace("(", "\\(")

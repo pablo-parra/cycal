@@ -1,4 +1,4 @@
-package com.tastik.cycal.core.domain;
+package com.tastik.cycal.core.config;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;

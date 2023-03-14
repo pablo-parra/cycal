@@ -1,6 +1,6 @@
 package com.tastik.cycal.data.rest.dtos;
 
-import com.tastik.cycal.core.domain.Details;
+import com.tastik.cycal.core.domain.races.Details;
 
 public record DetailsDTO(
         String title,

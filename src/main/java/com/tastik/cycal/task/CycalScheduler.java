@@ -1,6 +1,6 @@
 package com.tastik.cycal.task;
 
-import com.tastik.cycal.core.domain.Report;
+import com.tastik.cycal.core.domain.report.Report;
 import com.tastik.cycal.core.interactors.UseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

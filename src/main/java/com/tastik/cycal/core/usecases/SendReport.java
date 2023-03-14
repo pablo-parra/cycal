@@ -1,8 +1,8 @@
 package com.tastik.cycal.core.usecases;
 
-import com.tastik.cycal.core.domain.Races;
-import com.tastik.cycal.core.domain.Ranking;
-import com.tastik.cycal.core.domain.Report;
+import com.tastik.cycal.core.domain.races.Races;
+import com.tastik.cycal.core.domain.rankings.Ranking;
+import com.tastik.cycal.core.domain.report.Report;
 import com.tastik.cycal.core.interactors.ReportSender;
 import com.tastik.cycal.core.interactors.UseCase;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,8 +1,8 @@
 package com.tastik.cycal;
 
 import com.google.gson.GsonBuilder;
-import com.tastik.cycal.core.domain.CompetitionProperties;
-import com.tastik.cycal.core.domain.LocalDateDeserializer;
+import com.tastik.cycal.core.domain.races.CompetitionProperties;
+import com.tastik.cycal.core.config.LocalDateDeserializer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;

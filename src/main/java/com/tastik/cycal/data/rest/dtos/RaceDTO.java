@@ -1,7 +1,7 @@
 package com.tastik.cycal.data.rest.dtos;
 
-import com.tastik.cycal.core.domain.CompetitionProperties;
-import com.tastik.cycal.core.domain.Race;
+import com.tastik.cycal.core.domain.races.CompetitionProperties;
+import com.tastik.cycal.core.domain.races.Race;
 
 public record RaceDTO(
         String name,

@@ -1,4 +1,4 @@
-package com.tastik.cycal.core.domain;
+package com.tastik.cycal.core.domain.races;
 
 import java.time.LocalDate;
 import java.util.List;
