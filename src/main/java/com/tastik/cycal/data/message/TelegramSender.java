@@ -1,13 +1,14 @@
 package com.tastik.cycal.data.message;
 
-import com.tastik.cycal.core.config.Flags;
-import com.tastik.cycal.core.domain.rankings.IndividualRankingPosition;
+import com.tastik.cycal.core.config.Flag;
+import com.tastik.cycal.core.config.Gender;
 import com.tastik.cycal.core.domain.races.Race;
 import com.tastik.cycal.core.domain.races.RaceDay;
-import com.tastik.cycal.core.domain.report.Report;
 import com.tastik.cycal.core.domain.races.Stage;
 import com.tastik.cycal.core.domain.races.StageResults;
+import com.tastik.cycal.core.domain.rankings.IndividualRankingPosition;
 import com.tastik.cycal.core.domain.rankings.TeamRankingPosition;
+import com.tastik.cycal.core.domain.report.Report;
 import com.tastik.cycal.core.domain.results.RaceResult;
 import com.tastik.cycal.core.interactors.ReportSender;
 import com.tastik.cycal.core.interactors.ResultsReader;
@@ -20,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.InputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -28,7 +29,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -41,6 +41,8 @@ public class TelegramSender implements ReportSender {
     private static final String GENERAL_CLASSIFICATION = "General Classification";
     private static final String STAGE_CLASSIFICATION = "Stage Classification";
     private static final String FINAL_CLASSIFICATION = "Final Classification";
+    public static final String MEN = "🧔🏻‍";
+    public static final String WOMEN = "👩🏼‍🦳";
     @Value("${telegram.bot.token}")
     private String TELEGRAM_BOT_TOKEN;
     @Value("${telegram.channel.id}")
@@ -63,29 +65,34 @@ public class TelegramSender implements ReportSender {
     @Override
     public void send(Report report) {
         try {
-            String urlString = sendTelegramMessageUrl();
+            var message = formatMessageUsing(report);
+            send(message);
+        } catch (Exception ex) {
+            LOG.error("Error Sending Message to TELEGRAM: {}", ex.getMessage());
+        }
+    }
 
-            StringBuilder messageContent = new StringBuilder();
+    private StringBuilder formatMessageUsing(Report report) {
+        var messageContent = new StringBuilder();
+        formatYesterdayResults(report, messageContent);
+        messageContent.append(NEW_LINE).append(NEW_LINE);
+        formatTodayRacesDataWith(report, messageContent);
+        messageContent.append(NEW_LINE).append(NEW_LINE);
+        formatRankingDataWith(report, messageContent);
+        return messageContent;
+    }
 
-            formatYesterdayResults(report, messageContent);
+    private void send(StringBuilder message) throws IOException, InterruptedException {
+        var urlString = sendTelegramMessageUrl();
 
-            messageContent.append(NEW_LINE).append(NEW_LINE).append(NEW_LINE);
+        urlString = String.format(
+                urlString,
+                TELEGRAM_BOT_TOKEN,
+                TELEGRAM_CHANNEL_ID,
+                escapeCharactersOf(message)
+        );
 
-            formatTodayRacesDataWith(report, messageContent);
-
-            messageContent.append(NEW_LINE).append(NEW_LINE).append(NEW_LINE);
-
-            formatRankingDataWith(report, messageContent);
-
-            urlString = String.format(
-                    urlString,
-                    TELEGRAM_BOT_TOKEN,
-                    TELEGRAM_CHANNEL_ID,
-                    escapeCharactersOf(messageContent)
-            );
-
-
-//            URL url = new URL(urlString);
+        //            URL url = new URL(urlString);
 //            URLConnection conn = url.openConnection();
 //            StringBuilder sb = new StringBuilder();
 //            InputStream is = new BufferedInputStream(conn.getInputStream());
@@ -96,26 +103,26 @@ public class TelegramSender implements ReportSender {
 //            }
 //            String response = sb.toString();
 
-            // -------------------------------------
+        // -------------------------------------
 
-            ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.command("curl", "-X", "GET", urlString);
-            Process process = processBuilder.start();
+        final var processBuilder = new ProcessBuilder();
+        processBuilder.command("curl", "-X", "GET", urlString);
+        final var process = processBuilder.start();
 
-            StringBuilder sb = new StringBuilder();
-            InputStream is = new BufferedInputStream(process.getInputStream());
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            String inputLine = "";
-            while ((inputLine = br.readLine()) != null) {
-                sb.append(inputLine);
-            }
-            String response = sb.toString();
+        var sb = new StringBuilder();
+        final var is = new BufferedInputStream(process.getInputStream());
+        final var br = new BufferedReader(new InputStreamReader(is));
+        var inputLine = "";
+        while ((inputLine = br.readLine()) != null) {
+            sb.append(inputLine);
+        }
+        var response = sb.toString();
 
-            int exitCode = process.waitFor();
-            LOG.info("CURL exit code: {}", exitCode);
-            process.destroy();
+        var exitCode = process.waitFor();
+        LOG.info("CURL exit code: {}", exitCode);
+        process.destroy();
 
-            // -------------------------------------
+        // -------------------------------------
 
 //            final var response = restTemplate.exchange(url.toString(), HttpMethod.GET, null, String.class);
 
@@ -129,11 +136,7 @@ public class TelegramSender implements ReportSender {
 //                    = restTemplate.getForEntity(telegramRequestBuilder.toUriString(), String.class);
 //            final var response = restTemplate.postForObject(url.toString(), null, String.class);
 
-            LOG.info("Telegram response: {}", response/*.getBody()*/);
-
-        } catch (Exception ex) {
-            LOG.error("Error Sending Message to TELEGRAM: {}", ex.getMessage());
-        }
+        LOG.info("Telegram response: {}", response/*.getBody()*/);
     }
 
     private void formatYesterdayResults(Report report, StringBuilder messageContent) {
@@ -153,7 +156,7 @@ public class TelegramSender implements ReportSender {
 
             if (!results.isEmpty()) {
                 results.insert(0, NEW_LINE);
-                results.insert(0, "*YESTERDAY RACES RESULTS:*");
+                results.insert(0, "⬅️ *YESTERDAY RACES RESULTS:*");
             }
 
             messageContent.append(results);
@@ -247,7 +250,10 @@ public class TelegramSender implements ReportSender {
             final var stageClassification = resultsReader.readRaceResults(stageClassificationCode);
 
             results.append(TAB)
-                    .append(competition.raceName()).append(":");
+                    .append("_")
+                    .append(competition.raceName())
+                    .append("_")
+                    .append(":");
 
             if (stageClassification.isPresent() && !stageClassification.get().results().isEmpty() && nonNull(stageClassification.get().podium())) {
                 final var winner = stageClassification.get().first().orElseThrow();
@@ -272,13 +278,13 @@ public class TelegramSender implements ReportSender {
             final var generalClassificationReference = dayResults.results().stream().filter(result -> Objects.nonNull(result.title()) && result.title().contains(GENERAL_CLASSIFICATION)).findFirst().orElseThrow();
             final var generalClassificationCode = generalClassificationReference.eventCode();
             final var generalClassificationResults = resultsReader.readRaceResults(generalClassificationCode);
-            results.append("⭐️").append(" G.C.:").append(NEW_LINE);
+            results.append(TAB).append("⭐️").append(" G.C.:").append(NEW_LINE);
             if (generalClassificationResults.isPresent() && !generalClassificationResults.get().results().isEmpty() && nonNull(generalClassificationResults.get().podium())) {
 
                 final var generalClassification = generalClassificationResults.get().results();
 
                 for (int i = 0; i < generalClassificationPositions; i++) {
-                    results.append(TAB)
+                    results.append(TAB).append(TAB)
                             .append(rankingEmojiBy(Integer.parseInt(generalClassification.get(i).values().rank())))
                             .append(generalClassification.get(i).values().firstname())
                             .append(" ")
@@ -293,7 +299,7 @@ public class TelegramSender implements ReportSender {
                 results.append(TAB)
                         .append(" ")
                         .append("No results available ☹️")
-                        .append(NEW_LINE);
+                        .append(NEW_LINE).append(NEW_LINE);
             }
         } catch (Exception ex) {
             LOG.error("There was a problem formatting the GENERAL CLASSIFICATION of {}: {}", race.name(), ex.getMessage());
@@ -307,7 +313,7 @@ public class TelegramSender implements ReportSender {
 
         if (isTheWinner(i)) return time.result();
 
-        if (time.hasDifferenceAlreadyCalculated()) return time.startingWithAPlus();
+        if (time.hasDifferenceAlreadyCalculatedWith(winnerTime)) return time.startingWithAPlus();
 
         return time.differenceWith(winnerTime);
     }
@@ -349,7 +355,7 @@ public class TelegramSender implements ReportSender {
     private void formatTodayRacesDataWith(Report report, StringBuilder messageContent) {
         try {
             messageContent
-                    .append("*ROAD RACES TODAY:*")
+                    .append("⬇️ *ROAD RACES TODAY:*")
                     .append(NEW_LINE);
             report.races().todayRaces().forEach(
                     race -> {
@@ -373,9 +379,9 @@ public class TelegramSender implements ReportSender {
             if (todayStage.isPresent()) {
                 raceLineWith(messageContent, race);
                 if (race.isNationalChampionship()) {
-                    formatNationalChampionshipDataWith(messageContent, todayStage);
+                    formatNationalChampionshipDataWith(messageContent, todayStage.get());
                 } else {
-                    formatGrandTourDataWith(messageContent, race, todayStage);
+                    formatGrandTourDataWith(messageContent, race, todayStage.get());
                 }
             }
         } catch (Exception ex) {
@@ -392,26 +398,47 @@ public class TelegramSender implements ReportSender {
     }
 
     private void raceLineWith(StringBuilder messageContent, Race race) {
-        messageContent.append(flagOrDefault(race)).append(" ").append(race.name());
+        messageContent.append(flagOrDefault(race)).append(" ")
+                .append("__")
+                .append(race.name())
+                .append("__");
+
         if (TELEGRAM_LINKS_ENABLED && race.hasUrl()) {
             messageContent.append(" ").append("[➕]").append("(").append(race.url()).append(")");
         }
-        messageContent.append(":");
-        messageContent.append(NEW_LINE);
+
+        messageContent.append(" ").append(genderEmoji(race));
+
+        if (race.isMultiDayRace()) {
+            messageContent.append(":").append(NEW_LINE);
+        } else {
+            messageContent.append(NEW_LINE);
+        }
+
     }
 
-    private static void formatNationalChampionshipDataWith(StringBuilder messageContent, Optional<RaceDay> todayItem) {
-        todayItem.get().races().forEach(r -> {
-            messageContent.append(TAB).append("🚴").append(" ").append(r.raceName());
-            messageContent.append(NEW_LINE);
+    private static void formatNationalChampionshipDataWith(StringBuilder messageContent, RaceDay todayItem) {
+        todayItem.races().forEach(race -> {
+            messageContent.append(TAB).append("🚴")
+                    .append(genderEmojiBy(race))
+                    .append(" ").append(race.raceName())
+                    .append(NEW_LINE);
         });
     }
 
-    private static void formatGrandTourDataWith(StringBuilder messageContent, Race race, Optional<RaceDay> todayItem) {
-        messageContent.append(TAB)
-                .append("🚴").append(" ")
-                .append(todayItem.get().races().stream().filter(Stage::isStageRace).findFirst().orElseThrow().raceName())
-                .append("/").append(race.properties().schedule().items().size());
+    private static void formatGrandTourDataWith(StringBuilder messageContent, Race race, RaceDay todayItem) {
+        final var stage = todayItem.races().stream().filter(Stage::isStageRace).findFirst();
+
+        if (stage.isPresent()) {
+            messageContent.append(TAB).append("🚴");
+
+            if (Gender.MIXED.equals(race.gender())) {
+                messageContent.append(genderEmojiBy(stage.get()));
+            }
+
+            messageContent.append(" ").append(stage.get().raceName())
+                    .append("/").append(race.properties().schedule().items().size());
+        }
         messageContent.append(NEW_LINE).append(NEW_LINE);
     }
 
@@ -541,11 +568,11 @@ public class TelegramSender implements ReportSender {
     }
 
     private static String flagOrDefault(Race race) {
-        return Flags.get(race.country());
+        return Flag.get(race.country());
     }
 
     private String rankingEmojiBy(int i) {
-        var emoji = new String();
+        var emoji = "";
         switch (i) {
             case 1:
                 emoji = MEDAL_ONE;
@@ -568,6 +595,27 @@ public class TelegramSender implements ReportSender {
         return emoji;
     }
 
+    private String genderEmoji(Race race) {
+        var emoji = "";
+        switch (race.gender()) {
+            case WOMEN:
+                emoji = WOMEN;
+                break;
+            case MEN:
+                emoji = MEN;
+                break;
+            case MIXED:
+                emoji = WOMEN + MEN;
+        }
+        return emoji;
+    }
+
+    private static String genderEmojiBy(Stage stage) {
+        return stage.isWomenRace() ? WOMEN
+                : stage.isMenRace() ? MEN
+                : "";
+    }
+
     private static String escapeCharactersOf(StringBuilder message) {
         return message.toString()
                 .replace("-", "\\-")
@@ -575,14 +623,14 @@ public class TelegramSender implements ReportSender {
                 .replace(")", "\\)")
                 .replace(".", "\\.")
                 .replace("#", "\\#")
-                .replace("`", "\\`")
                 .replace("[", "\\[")
                 .replace("]", "\\]")
-                .replace("_", "\\_")
+//                .replace("_", "\\_")
                 .replace(">", "\\>")
                 .replace("+", "\\+")
-                .replace("&", "%26");
-//                            .replace("*", "\\*")
+                .replace("&", "%26")
+//                .replace("`", "\\`")
+                .replace("|", "\\|");
     }
 
     public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
@@ -599,6 +647,6 @@ public class TelegramSender implements ReportSender {
     private static final String MEDAL_TWO = "%F0%9F%A5%88";
     private static final String MEDAL_THREE = "%F0%9F%A5%89";
     private static final String NEW_LINE = "%0A";
-    private static final String TAB = "%20%20%20%20";
+    private static final String TAB = "%20%20";
     private static final Logger LOG = LoggerFactory.getLogger(TelegramSender.class);
 }

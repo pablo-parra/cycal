@@ -28,11 +28,6 @@ public class RacesReaderImpl implements RacesReader {
     @Value("${source.past:/api/calendar/past}")
     private String past;
 
-//    @Value("${race.discipline:ROA}")
-//    private String discipline;
-    @Value("${race.class:1.UWT,2.UWT}")
-    private String raceClass;
-
     private final RestTemplate restTemplate;
 
     private final HtmlCrawler crawler;
@@ -80,17 +75,11 @@ public class RacesReaderImpl implements RacesReader {
     }
 
     private String pastRacesUrl() {
-        return host+ past;
-//        return """
-//                %s?raceClass=%s
-//                """.formatted(host+api, raceClass);
+        return host + past;
     }
 
     private String upcomingRacesUrl() {
-        return host+ upcoming;
-//        return """
-//                %s?raceClass=%s
-//                """.formatted(host+api, raceClass);
+        return host + upcoming;
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(RacesReaderImpl.class);

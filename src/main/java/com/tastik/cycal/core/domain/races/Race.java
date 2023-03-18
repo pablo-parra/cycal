@@ -1,9 +1,12 @@
 package com.tastik.cycal.core.domain.races;
 
+import com.tastik.cycal.core.config.Gender;
+import com.tastik.cycal.core.config.RaceCategory;
+
 import java.time.LocalDate;
-import java.util.Objects;
 import java.util.Optional;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 public record Race(
@@ -15,6 +18,8 @@ public record Race(
         Details details,
         CompetitionProperties properties) {
 
+    public static final String WOMEN = "WOMEN";
+    public static final String MEN = "MEN";
 
     public boolean isOneDayRace() {
         return nonNull(properties)
@@ -35,6 +40,30 @@ public record Race(
                 && (name.toUpperCase().contains(CHAMPIONSHIP) || name.toUpperCase().contains(CHAMPIONSHIPS));
     }
 
+    public boolean isWomenRace() {
+        return nonNull(properties)
+                && nonNull(properties.schedule())
+                && nonNull(properties.schedule().items())
+                && properties.schedule().items().stream()
+                .flatMap(item -> item.races().stream())
+                .allMatch(race -> race.category().toUpperCase().contains(WOMEN));
+    }
+
+    public boolean isMenRace() {
+        return nonNull(properties)
+                && nonNull(properties.schedule())
+                && nonNull(properties.schedule().items())
+                && properties.schedule().items().stream()
+                .flatMap(item -> item.races().stream())
+                .allMatch(race -> race.category().toUpperCase().contains(MEN));
+    }
+
+    public Gender gender() {
+        return isWomenRace() ? Gender.WOMEN
+                : isMenRace() ? Gender.MEN
+                : Gender.MIXED;
+    }
+
     public boolean hasUrl() {
         return nonNull(properties) && nonNull(properties.competitionDetails())
                 && nonNull(properties.competitionDetails().website())
@@ -46,21 +75,31 @@ public record Race(
     }
 
     public Optional<RaceDay> todayStage() {
-        if (Objects.isNull(properties)
-                || Objects.isNull(properties.schedule())
-                || Objects.isNull(properties.schedule().items())) {
+        if (isNull(properties)
+                || isNull(properties.schedule())
+                || isNull(properties.schedule().items())) {
             return Optional.empty();
         }
         return properties.schedule().items().stream().filter(item -> item.date().equals(LocalDate.now())).findFirst();
     }
 
     public Optional<RaceDay> yesterdayStage() {
-        if (Objects.isNull(properties)
-                || Objects.isNull(properties.schedule())
-                || Objects.isNull(properties.schedule().items())) {
+        if (isNull(properties)
+                || isNull(properties.schedule())
+                || isNull(properties.schedule().items())) {
             return Optional.empty();
         }
         return properties.schedule().items().stream().filter(item -> item.date().equals(LocalDate.now().minusDays(1))).findFirst();
+    }
+
+    public RaceCategory category() {
+        if (isNull(properties)
+                || isNull(properties.competitionDetails())
+                || isNull(properties.competitionDetails().competitionClass())) {
+            return RaceCategory.UNKNOWN;
+        }
+
+        return RaceCategory.by(properties.competitionDetails().competitionClass());
     }
 
     private static final int ONE = 1;

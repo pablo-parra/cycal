@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class Flags {
+public class Flag {
     private static final Map<String, String> dictionary = loadFlags();
 
     private static Map<String, String> loadFlags() {
@@ -16,6 +16,7 @@ public class Flags {
         flagsMap.put("FRA", "🇫🇷");
         flagsMap.put("GBR", "🇬🇧");
         flagsMap.put("GER", "🇩🇪");
+        flagsMap.put("GRE", "🇬🇷");
         flagsMap.put("ITA", "🇮🇹");
         flagsMap.put("MAS", "🇲🇾");
         flagsMap.put("NED", "🇳🇱");

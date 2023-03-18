@@ -1,9 +1,12 @@
 package com.tastik.cycal.core.domain.results;
 
+import com.tastik.cycal.core.config.TimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 
 public record Values(
         String team,
@@ -15,23 +18,30 @@ public record Values(
         int age,
         String nationality
 ) {
-    public String startingWithAPlus(){
+    public String startingWithAPlus() {
         return result.startsWith("+") ? result.replace("+", PLUS) : PLUS.concat(result);
     }
 
-    public String result(){
+    public String result() {
         return result.trim();
     }
 
-    public boolean hasDifferenceAlreadyCalculated() {
-        return !result.matches(".*:.*:.*");
+    public boolean hasDifferenceAlreadyCalculatedWith(String time) {
+        return Arrays.stream(TimeFormat.values())
+                .map(TimeFormat::regEx).noneMatch(result::matches)
+                || isLessThan(time);
+//        return !result.matches(".*:.*:.*")
+//                && !result.matches(".*h.*'.*''")
+//                && !result.matches(".*h.*:.*");
     }
 
-    public String differenceWith(String time){
+    public String differenceWith(String time) {
         try {
-            final var simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-            final var date1 = simpleDateFormat.parse(time);
-            final var date2 = simpleDateFormat.parse(result);
+//            final var simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+//            final var date1 = simpleDateFormat.parse(time);
+//            final var date2 = simpleDateFormat.parse(result);
+            final var date1 = getDateFrom(time);
+            final var date2 = getDateFrom(result);
 
             long differenceInMilliSeconds
                     = Math.abs(date2.getTime() - date1.getTime());
@@ -64,6 +74,33 @@ public record Values(
             LOG.error("There was a problem getting difference between {} and {}: {}", time, result, ex.getMessage());
             return DEFAULT;
         }
+    }
+
+    public boolean isLessThan(String time) {
+        try {
+            final var date1 = getDateFrom(time);
+            final var date2 = getDateFrom(result);
+
+            return date2.before(date1);
+        } catch (Exception ex) {
+            LOG.error("There was a problem evaluating if {} is less than {}: {}", time, result, ex.getMessage());
+            return false;
+        }
+    }
+
+    private static Date getDateFrom(String time) {
+        final var timeFormats = Arrays.stream(TimeFormat.values()).map(TimeFormat::format).toList();
+        var date = new Date();
+        for(String format : timeFormats){
+            try {
+                final var simpleDateFormat = new SimpleDateFormat(format);
+                date = simpleDateFormat.parse(time);
+                return date;
+            } catch (Exception ex) {
+                LOG.info("Unable to parse time {} to format {}", time, format);
+            }
+        }
+        return date;
     }
 
     private static Object withTwoDigits(long number) {
