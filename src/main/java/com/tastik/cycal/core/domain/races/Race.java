@@ -4,6 +4,7 @@ import com.tastik.cycal.core.config.Gender;
 import com.tastik.cycal.core.config.RaceCategory;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
@@ -46,7 +47,7 @@ public record Race(
                 && nonNull(properties.schedule().items())
                 && properties.schedule().items().stream()
                 .flatMap(item -> item.races().stream())
-                .allMatch(race -> race.category().toUpperCase().contains(WOMEN));
+                .allMatch(race -> Arrays.stream(race.category().toUpperCase().split(" ")).toList().contains(WOMEN));
     }
 
     public boolean isMenRace() {
@@ -55,7 +56,7 @@ public record Race(
                 && nonNull(properties.schedule().items())
                 && properties.schedule().items().stream()
                 .flatMap(item -> item.races().stream())
-                .allMatch(race -> race.category().toUpperCase().contains(MEN));
+                .allMatch(race -> Arrays.stream(race.category().toUpperCase().split(" ")).toList().contains(MEN));
     }
 
     public Gender gender() {

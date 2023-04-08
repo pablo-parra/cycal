@@ -13,8 +13,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 
-import static java.util.Objects.nonNull;
-
 @Service
 public class RankingReaderImpl implements RankingReader {
 
@@ -36,34 +34,33 @@ public class RankingReaderImpl implements RankingReader {
 
     @Override
     public Ranking readRankingData() {
-        try{
+        try {
             final var individualRanking = getIndividualRanking();
             final var teamRanking = getTeamRanking();
-            return new Ranking(
-                    nonNull(individualRanking) ? individualRanking : IndividualRanking.empty(),
-                    nonNull(teamRanking) ? teamRanking : TeamRanking.empty()
-            );
+            return (individualRanking.isEmpty() && teamRanking.isEmpty())
+                    ? Ranking.empty()
+                    : new Ranking(individualRanking, teamRanking);
         } catch (Exception ex) {
             LOG.error(ex.getMessage());
-            return new Ranking(IndividualRanking.empty(), TeamRanking.empty());
+            return Ranking.empty();
         }
     }
 
     private IndividualRanking getIndividualRanking() {
-        try{
+        try {
             ResponseEntity<IndividualRanking> response = restTemplate.getForEntity(url(INDIVIDUAL), IndividualRanking.class);
             return response.getBody();
-        }catch(Exception ex) {
+        } catch (Exception ex) {
             LOG.error("There was a problem getting the INDIVIDUAL RANKING DATA: {}", ex.getMessage());
             return IndividualRanking.empty();
         }
     }
 
     private TeamRanking getTeamRanking() {
-        try{
+        try {
             ResponseEntity<TeamRanking> response = restTemplate.getForEntity(url(TEAM), TeamRanking.class);
             return response.getBody();
-        }catch(Exception ex) {
+        } catch (Exception ex) {
             LOG.error("There was a problem getting the TEAM RANKING DATA: {}", ex.getMessage());
             return TeamRanking.empty();
         }

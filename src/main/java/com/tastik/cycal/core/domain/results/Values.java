@@ -8,6 +8,8 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
+import static java.util.Objects.isNull;
+
 public record Values(
         String team,
         String result,
@@ -105,6 +107,11 @@ public record Values(
 
     private static Object withTwoDigits(long number) {
         return number < 10 ? ZERO.concat(String.valueOf(number)) : number;
+    }
+
+    public String initial() {
+        if(isNull(firstname)) return "";
+        return firstname.substring(0,1).toUpperCase().concat(".");
     }
 
     private static final String PLUS = "\\%2B";

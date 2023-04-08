@@ -10,22 +10,29 @@ public class Flag {
     private static Map<String, String> loadFlags() {
         final var flagsMap = new HashMap<String, String>();
         flagsMap.put("ALG", "🇩🇿");
+        flagsMap.put("AUS", "🇦🇺");
         flagsMap.put("BEL", "🇧🇪");
+        flagsMap.put("CHI", "🇨🇱");
         flagsMap.put("CRO", "🇭🇷");
         flagsMap.put("ESP", "🇪🇸");
         flagsMap.put("FRA", "🇫🇷");
         flagsMap.put("GBR", "🇬🇧");
         flagsMap.put("GER", "🇩🇪");
         flagsMap.put("GRE", "🇬🇷");
+        flagsMap.put("GUA", "🇬🇹");
         flagsMap.put("ITA", "🇮🇹");
         flagsMap.put("MAS", "🇲🇾");
+        flagsMap.put("MLI", "🇲🇱");
         flagsMap.put("NED", "🇳🇱");
         flagsMap.put("PAN", "🇵🇦");
         flagsMap.put("POR", "🇵🇹");
+        flagsMap.put("SLO", "🇸🇮");
         flagsMap.put("SUI", "🇨🇭");
+        flagsMap.put("THA", "🇹🇭");
         flagsMap.put("TPE", "🇹🇼");
         flagsMap.put("TUR", "🇹🇷");
         flagsMap.put("UAE", "🇦🇪");
+        flagsMap.put("URU", "🇺🇾");
         return flagsMap;
     }
 

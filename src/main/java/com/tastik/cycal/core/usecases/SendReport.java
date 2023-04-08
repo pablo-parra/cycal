@@ -1,5 +1,6 @@
 package com.tastik.cycal.core.usecases;
 
+import com.tastik.cycal.core.config.RankingDay;
 import com.tastik.cycal.core.domain.races.Races;
 import com.tastik.cycal.core.domain.rankings.Ranking;
 import com.tastik.cycal.core.domain.report.Report;
@@ -30,7 +31,7 @@ public class SendReport implements UseCase<Report> {
 
     public Report execute() {
         final var races = readRaces.execute();
-        final var ranking = readRanking.execute();
+        final var ranking = RankingDay.isTodayRankingDay() ? readRanking.execute() : Ranking.empty();
         final var report = new Report(races, ranking);
         sender.send(report);
         return report;

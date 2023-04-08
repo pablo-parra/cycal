@@ -23,8 +23,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +41,7 @@ public class TelegramSender implements ReportSender {
     private static final String FINAL_CLASSIFICATION = "Final Classification";
     public static final String MEN = "🧔🏻‍";
     public static final String WOMEN = "👩🏼‍🦳";
+    public static final int PODIUM_POSITIONS = 3;
     @Value("${telegram.bot.token}")
     private String TELEGRAM_BOT_TOKEN;
     @Value("${telegram.channel.id}")
@@ -197,9 +196,9 @@ public class TelegramSender implements ReportSender {
                         final var finalClassification = resultsReader.readRaceResults(finalClassificationCode);
                         if (finalClassification.isPresent()) {
                             final var finalResults = finalClassification.get().results();
-                            for (int i = 0; i < 3/*podium.positions().size()*/; i++) {
+                            for (int i = 0; i < PODIUM_POSITIONS; i++) {
                                 results.append(rankingEmojiBy(Integer.parseInt(finalResults.get(i).values().rank())))
-                                        .append(finalResults.get(i).values().firstname())
+                                        .append(finalResults.get(i).values().initial())
                                         .append(" ")
                                         .append(finalResults.get(i).values().lastname())
                                         .append(" ")
@@ -286,14 +285,13 @@ public class TelegramSender implements ReportSender {
                 for (int i = 0; i < generalClassificationPositions; i++) {
                     results.append(TAB).append(TAB)
                             .append(rankingEmojiBy(Integer.parseInt(generalClassification.get(i).values().rank())))
-                            .append(generalClassification.get(i).values().firstname())
+                            .append(generalClassification.get(i).values().initial())
                             .append(" ")
                             .append(generalClassification.get(i).values().lastname())
                             .append(" ")
                             .append(calculateTime(generalClassification, i))
                             .append(NEW_LINE);
                 }
-                results.append(NEW_LINE);
             } else {
                 LOG.info("No GENERAL CLASSIFICATION results available for {} (EVENT CODE: {})", race.name(), generalClassificationCode);
                 results.append(TAB)
@@ -327,23 +325,35 @@ public class TelegramSender implements ReportSender {
             final var dayResults = race.properties().results().accordion().stream().filter(item -> item.label().equals(competition.raceName())).findFirst();
 
             if (dayResults.isPresent()) {
-                final var generalClassificationResult = dayResults.get().results().stream().filter(result -> "General Classification".equals(result.title())).findFirst().orElseThrow();
-                final var generalClassificationCode = generalClassificationResult.eventCode();
-                final var generalClassification = resultsReader.readRaceResults(generalClassificationCode);
-                if (generalClassification.isPresent()) {
-                    final var podium = generalClassification.get().calculatePodium();
+                final var generalClassificationReference = dayResults.get().results().stream().filter(result -> GENERAL_CLASSIFICATION.equals(result.title())).findFirst().orElseThrow();
+                final var generalClassificationCode = generalClassificationReference.eventCode();
+                final var generalClassificationResult = resultsReader.readRaceResults(generalClassificationCode);
+                if (generalClassificationResult.isPresent()) {
+//                    final var podium = generalClassification.get().calculatePodium();
+//
+//                    for (int i = 0; i < podium.positions().size(); i++) {
+//                        results.append(TAB)
+//                                .append(rankingEmojiBy(podium.positions().get(i).position()))
+//                                .append(podium.positions().get(i).firstName())
+//                                .append(" ")
+//                                .append(podium.positions().get(i).lastName())
+//                                .append(" ")
+//                                .append(podium.positions().get(i).time())
+//                                .append(NEW_LINE);
+//                    }
+//                    results.append(NEW_LINE);
+                    final var generalClassification = generalClassificationResult.get().results();
 
-                    for (int i = 0; i < podium.positions().size(); i++) {
-                        results.append(TAB)
-                                .append(rankingEmojiBy(podium.positions().get(i).position()))
-                                .append(podium.positions().get(i).firstName())
+                    for (int i = 0; i < generalClassificationPositions; i++) {
+                        results.append(TAB).append(TAB)
+                                .append(rankingEmojiBy(Integer.parseInt(generalClassification.get(i).values().rank())))
+                                .append(generalClassification.get(i).values().initial())
                                 .append(" ")
-                                .append(podium.positions().get(i).lastName())
+                                .append(generalClassification.get(i).values().lastname())
                                 .append(" ")
-                                .append(podium.positions().get(i).time())
+                                .append(calculateTime(generalClassification, i))
                                 .append(NEW_LINE);
                     }
-                    results.append(NEW_LINE);
                 }
             } else {
                 LOG.info("No results found in 'results' object for {}: {}", race.name(), competition.raceName());
@@ -357,23 +367,27 @@ public class TelegramSender implements ReportSender {
             messageContent
                     .append("⬇️ *ROAD RACES TODAY:*")
                     .append(NEW_LINE);
-            report.races().todayRaces().forEach(
-                    race -> {
-                        if (race.isMultiDayRace()) {
-                            formatMultiDayRaceDataWith(messageContent, race);
-                        }
+            if(report.races().todayRaces().isEmpty()){
+                messageContent.append("No races today 😢");
+            }else{
+                report.races().todayRaces().forEach(
+                        race -> {
+                            if (race.isMultiDayRace()) {
+                                formatMultiDayRaceDataUsing(messageContent, race);
+                            }
 
-                        if (race.isOneDayRace()) {
-                            formatOneDayRaceDataWith(messageContent, race);
+                            if (race.isOneDayRace()) {
+                                formatOneDayRaceDataUsing(messageContent, race);
+                            }
                         }
-                    }
-            );
+                );
+            }
         } catch (Exception ex) {
             LOG.error("There was a problem formatting TODAY RACES DATA: {}", ex.getMessage());
         }
     }
 
-    private void formatMultiDayRaceDataWith(StringBuilder messageContent, Race race) {
+    private void formatMultiDayRaceDataUsing(StringBuilder messageContent, Race race) {
         try {
             final var todayStage = race.todayStage();
             if (todayStage.isPresent()) {
@@ -389,7 +403,7 @@ public class TelegramSender implements ReportSender {
         }
     }
 
-    private void formatOneDayRaceDataWith(StringBuilder messageContent, Race race) {
+    private void formatOneDayRaceDataUsing(StringBuilder messageContent, Race race) {
         try {
             raceLineWith(messageContent, race);
         } catch (Exception ex) {
@@ -398,7 +412,9 @@ public class TelegramSender implements ReportSender {
     }
 
     private void raceLineWith(StringBuilder messageContent, Race race) {
-        messageContent.append(flagOrDefault(race)).append(" ")
+        messageContent
+                .append(NEW_LINE)
+                .append(flagOrDefault(race)).append(" ")
                 .append("__")
                 .append(race.name())
                 .append("__");
@@ -409,7 +425,7 @@ public class TelegramSender implements ReportSender {
 
         messageContent.append(" ").append(genderEmoji(race));
 
-        if (race.isMultiDayRace()) {
+        if (race.isMultiDayRace() && !race.isNationalChampionship()) {
             messageContent.append(":").append(NEW_LINE);
         } else {
             messageContent.append(NEW_LINE);
@@ -436,30 +452,38 @@ public class TelegramSender implements ReportSender {
                 messageContent.append(genderEmojiBy(stage.get()));
             }
 
-            messageContent.append(" ").append(stage.get().raceName())
+            messageContent
+                    .append(" ").append(stage.get().raceName())
                     .append("/").append(race.properties().schedule().items().size());
         }
-        messageContent.append(NEW_LINE).append(NEW_LINE);
+        messageContent.append(NEW_LINE);
     }
 
     private void formatRankingDataWith(Report report, StringBuilder messageContent) {
-        if (isMonday()) {
+        if (report.ranking().isNotEmpty()) {
+            formatIndividualRanking(report, messageContent);
+            formatTeamRanking(report, messageContent);
+        }
+    }
+
+    private void formatIndividualRanking(Report report, StringBuilder messageContent) {
+        if(report.ranking().individualRanking().isNotEmpty()){
             messageContent.append("-------------------")
                     .append(NEW_LINE)
                     .append("*INDIVIDUAL RANKING UCI (points):*");
             individualMenRanking(report, messageContent);
             individualWomenRanking(report, messageContent);
+        }
+    }
 
+    private void formatTeamRanking(Report report, StringBuilder messageContent) {
+        if(report.ranking().teamRanking().isNotEmpty()){
             messageContent.append("-------------------")
                     .append(NEW_LINE)
                     .append("*TEAM RANKING UCI (points):*");
             teamMenRanking(report, messageContent);
             teamWomenRanking(report, messageContent);
         }
-    }
-
-    private static boolean isMonday() {
-        return LocalDate.now().getDayOfWeek().equals(DayOfWeek.MONDAY);
     }
 
     private void individualMenRanking(Report report, StringBuilder messageContent) {

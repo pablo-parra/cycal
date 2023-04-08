@@ -7,4 +7,12 @@ public record TeamRanking (
     public static TeamRanking empty() {
         return new TeamRanking(TeamDiscipline.empty(), TeamDiscipline.empty());
     }
+
+    public boolean isEmpty() {
+        return this.equals(empty());
+    }
+
+    public boolean isNotEmpty() {
+        return !this.equals(empty());
+    }
 }
