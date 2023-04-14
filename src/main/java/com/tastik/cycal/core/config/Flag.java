@@ -12,6 +12,7 @@ public class Flag {
         flagsMap.put("ALG", "🇩🇿");
         flagsMap.put("AUS", "🇦🇺");
         flagsMap.put("BEL", "🇧🇪");
+        flagsMap.put("BRA", "🇧🇷");
         flagsMap.put("CHI", "🇨🇱");
         flagsMap.put("CRO", "🇭🇷");
         flagsMap.put("ESP", "🇪🇸");
@@ -33,6 +34,7 @@ public class Flag {
         flagsMap.put("TUR", "🇹🇷");
         flagsMap.put("UAE", "🇦🇪");
         flagsMap.put("URU", "🇺🇾");
+        flagsMap.put("ZIM", "🇿🇼");
         return flagsMap;
     }
 
