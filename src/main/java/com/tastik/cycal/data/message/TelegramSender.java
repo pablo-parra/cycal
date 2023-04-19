@@ -2,6 +2,7 @@ package com.tastik.cycal.data.message;
 
 import com.tastik.cycal.core.config.Flag;
 import com.tastik.cycal.core.config.Gender;
+import com.tastik.cycal.core.config.RaceCategory;
 import com.tastik.cycal.core.domain.races.Race;
 import com.tastik.cycal.core.domain.races.RaceDay;
 import com.tastik.cycal.core.domain.races.Stage;
@@ -142,16 +143,30 @@ public class TelegramSender implements ReportSender {
         try {
             final var results = new StringBuilder();
 
-            report.races().yesterdayRaces().forEach(
-                    race -> {
+//            report.races().yesterdayRaces().forEach(
+//                    race -> {
+//                        if (race.isMultiDayRace()) {
+//                            formatMultiDayRaceResultsWith(results, race);
+//                        }
+//                        if (race.isOneDayRace()) {
+//                            formatOneDayRaceResultsWith(results, race);
+//                        }
+//                    }
+//            );
+
+            report.races().mapOf(report.races().yesterdayRaces()).forEach((category, races) -> {
+                if(!races.isEmpty()) {
+                    results.append(NEW_LINE).append(emojiOf(category));
+                    races.forEach(race -> {
                         if (race.isMultiDayRace()) {
                             formatMultiDayRaceResultsWith(results, race);
                         }
                         if (race.isOneDayRace()) {
                             formatOneDayRaceResultsWith(results, race);
                         }
-                    }
-            );
+                    });
+                }
+            });
 
             if (!results.isEmpty()) {
                 results.insert(0, NEW_LINE);
@@ -277,7 +292,7 @@ public class TelegramSender implements ReportSender {
             final var generalClassificationReference = dayResults.results().stream().filter(result -> Objects.nonNull(result.title()) && result.title().contains(GENERAL_CLASSIFICATION)).findFirst().orElseThrow();
             final var generalClassificationCode = generalClassificationReference.eventCode();
             final var generalClassificationResults = resultsReader.readRaceResults(generalClassificationCode);
-            results.append(TAB).append("⭐️").append(" G.C.:").append(NEW_LINE);
+            results.append(TAB).append(generalClassificationEmoji()).append(" G.C.:").append(NEW_LINE);
             if (generalClassificationResults.isPresent() && !generalClassificationResults.get().results().isEmpty() && nonNull(generalClassificationResults.get().podium())) {
 
                 final var generalClassification = generalClassificationResults.get().results();
@@ -329,19 +344,6 @@ public class TelegramSender implements ReportSender {
                 final var generalClassificationCode = generalClassificationReference.eventCode();
                 final var generalClassificationResult = resultsReader.readRaceResults(generalClassificationCode);
                 if (generalClassificationResult.isPresent()) {
-//                    final var podium = generalClassification.get().calculatePodium();
-//
-//                    for (int i = 0; i < podium.positions().size(); i++) {
-//                        results.append(TAB)
-//                                .append(rankingEmojiBy(podium.positions().get(i).position()))
-//                                .append(podium.positions().get(i).firstName())
-//                                .append(" ")
-//                                .append(podium.positions().get(i).lastName())
-//                                .append(" ")
-//                                .append(podium.positions().get(i).time())
-//                                .append(NEW_LINE);
-//                    }
-//                    results.append(NEW_LINE);
                     final var generalClassification = generalClassificationResult.get().results();
 
                     for (int i = 0; i < generalClassificationPositions; i++) {
@@ -370,8 +372,21 @@ public class TelegramSender implements ReportSender {
             if(report.races().todayRaces().isEmpty()){
                 messageContent.append("No races today 😢");
             }else{
-                report.races().todayRaces().forEach(
-                        race -> {
+//                report.races().todayRaces().forEach(
+//                        race -> {
+//                            if (race.isMultiDayRace()) {
+//                                formatMultiDayRaceDataUsing(messageContent, race);
+//                            }
+//
+//                            if (race.isOneDayRace()) {
+//                                formatOneDayRaceDataUsing(messageContent, race);
+//                            }
+//                        }
+//                );
+                report.races().mapOf(report.races().todayRaces()).forEach((category, races) -> {
+                    if(!races.isEmpty()) {
+                        messageContent.append(NEW_LINE).append(emojiOf(category));
+                        races.forEach(race -> {
                             if (race.isMultiDayRace()) {
                                 formatMultiDayRaceDataUsing(messageContent, race);
                             }
@@ -379,8 +394,9 @@ public class TelegramSender implements ReportSender {
                             if (race.isOneDayRace()) {
                                 formatOneDayRaceDataUsing(messageContent, race);
                             }
-                        }
-                );
+                        });
+                    }
+                });
             }
         } catch (Exception ex) {
             LOG.error("There was a problem formatting TODAY RACES DATA: {}", ex.getMessage());
@@ -630,6 +646,31 @@ public class TelegramSender implements ReportSender {
                 break;
             case MIXED:
                 emoji = WOMEN + MEN;
+        }
+        return emoji;
+    }
+
+    private static String generalClassificationEmoji() {
+        return "📶";
+    }
+
+    private String emojiOf(RaceCategory category){
+        var emoji = "";
+        switch (category) {
+            case UWT:
+                emoji = "⭐️⭐️⭐️⭐️⭐️ (UWT)";
+                break;
+            case PRO:
+                emoji = "⭐️⭐️⭐️⭐️ (Pro)";
+                break;
+            case CATEGORY_1:
+                emoji = "⭐️⭐️⭐️ (Cat.1)";
+                break;
+            case CATEGORY_2:
+                emoji = "⭐️⭐️ (Cat.2)";
+                break;
+            case UNKNOWN:
+                emoji = "⭐️ (Other)";
         }
         return emoji;
     }
