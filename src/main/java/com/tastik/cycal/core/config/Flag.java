@@ -12,6 +12,7 @@ public class Flag {
         flagsMap.put("ALG", "🇩🇿");
         flagsMap.put("AUS", "🇦🇺");
         flagsMap.put("BEL", "🇧🇪");
+        flagsMap.put("BIH", "🇧🇦");
         flagsMap.put("BRA", "🇧🇷");
         flagsMap.put("CHI", "🇨🇱");
         flagsMap.put("CRO", "🇭🇷");

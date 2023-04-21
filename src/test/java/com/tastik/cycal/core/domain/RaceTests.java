@@ -36,8 +36,10 @@ public class RaceTests {
     @Test
     void is_National_Championship() {
         final var nationalChampionship = nationalChampionship();
+        final var nationalChampionshipInName = nationalChampionshipInRaceName();
         final var nationalChampionships = nationalChampionships();
         assertThat(nationalChampionship.isNationalChampionship()).isTrue();
+        assertThat(nationalChampionshipInName.isNationalChampionship()).isTrue();
         assertThat(nationalChampionships.isNationalChampionship()).isTrue();
     }
 
@@ -147,6 +149,27 @@ public class RaceTests {
     }
 
     private Race nationalChampionship() {
+        return new Race(
+                NATIONAL_CHAMPIONSHIP,
+                null,
+                null,
+                ESP,
+                null,
+                null,
+                new CompetitionProperties(
+                        NATIONAL_CHAMPIONSHIP,
+                        new CompetitionDetails(null, null, null, ESP, "CN - National Championships", null, null),
+                        new Schedule(
+                                List.of(
+                                        new RaceDay(LocalDate.now(), Collections.emptyList())
+                                )
+                        ),
+                        null
+                )
+        );
+    }
+
+    private Race nationalChampionshipInRaceName() {
         return new Race(
                 NATIONAL_CHAMPIONSHIP,
                 null,

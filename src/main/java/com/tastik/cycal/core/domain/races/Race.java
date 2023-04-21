@@ -37,8 +37,14 @@ public record Race(
     }
 
     public boolean isNationalChampionship() {
-        return name.toUpperCase().contains(NATIONAL)
+        return nonNull(properties)
+                && nonNull(properties.competitionDetails())
+                && nonNull(properties.competitionDetails().competitionClass())
+                ? (properties.competitionDetails().competitionClass().toUpperCase().contains(NATIONAL)
+                    && properties.competitionDetails().competitionClass().toUpperCase().contains(CHAMPIONSHIPS))
+                : name.toUpperCase().contains(NATIONAL)
                 && (name.toUpperCase().contains(CHAMPIONSHIP) || name.toUpperCase().contains(CHAMPIONSHIPS));
+
     }
 
     public boolean isWomenRace() {

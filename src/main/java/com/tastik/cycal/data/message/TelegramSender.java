@@ -43,6 +43,7 @@ public class TelegramSender implements ReportSender {
     public static final String MEN = "🧔🏻‍";
     public static final String WOMEN = "👩🏼‍🦳";
     public static final int PODIUM_POSITIONS = 3;
+    public static final String NO_RESULTS_AVAILABLE = "No results available ☹️";
     @Value("${telegram.bot.token}")
     private String TELEGRAM_BOT_TOKEN;
     @Value("${telegram.channel.id}")
@@ -211,15 +212,20 @@ public class TelegramSender implements ReportSender {
                         final var finalClassification = resultsReader.readRaceResults(finalClassificationCode);
                         if (finalClassification.isPresent()) {
                             final var finalResults = finalClassification.get().results();
-                            for (int i = 0; i < PODIUM_POSITIONS; i++) {
-                                results.append(rankingEmojiBy(Integer.parseInt(finalResults.get(i).values().rank())))
-                                        .append(finalResults.get(i).values().initial())
-                                        .append(" ")
-                                        .append(finalResults.get(i).values().lastname())
-                                        .append(" ")
-                                        .append(calculateTime(finalResults, i))
-                                        .append(NEW_LINE);
+                            if(!finalResults.isEmpty()){
+                                for (int i = 0; i < PODIUM_POSITIONS; i++) {
+                                    results.append(rankingEmojiBy(Integer.parseInt(finalResults.get(i).values().rank())))
+                                            .append(finalResults.get(i).values().initial())
+                                            .append(" ")
+                                            .append(finalResults.get(i).values().lastname())
+                                            .append(" ")
+                                            .append(calculateTime(finalResults, i))
+                                            .append(NEW_LINE);
+                                }
+                            }else{
+                                results.append(TAB).append(TAB).append(NO_RESULTS_AVAILABLE);
                             }
+
                             results.append(NEW_LINE);
                         }
                     }
@@ -278,7 +284,7 @@ public class TelegramSender implements ReportSender {
                 LOG.info("No results available for {} of {} (EVENT CODE: {})", competition.raceName(), race.name(), stageClassificationCode);
                 results.append(TAB)
                         .append(" ")
-                        .append("No results available ☹️")
+                        .append(NO_RESULTS_AVAILABLE)
                         .append(NEW_LINE);
             }
 
