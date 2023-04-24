@@ -93,11 +93,6 @@ public class TelegramSender implements ReportSender {
                 escapeCharactersOf(message)
         );
 
-        LOG.info("Sending Telegram message to-> URL: {} | BOT: {} | CHANNEL_ID: {}",
-                sendTelegramMessageUrl(),
-                TELEGRAM_BOT_TOKEN,
-                TELEGRAM_CHANNEL_ID);
-
         //            URL url = new URL(urlString);
 //            URLConnection conn = url.openConnection();
 //            StringBuilder sb = new StringBuilder();
