@@ -17,6 +17,7 @@ public class CycalScheduler {
     private final UseCase<Report> sendReport;
 
     public CycalScheduler(@Qualifier("SendReport")UseCase<Report> sendReport) {
+        LOG.info("SCHEDULED TASK: sendReport");
         this.sendReport = sendReport;
     }
 
