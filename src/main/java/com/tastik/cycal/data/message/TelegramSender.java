@@ -465,6 +465,20 @@ public class TelegramSender implements ReportSender {
     }
 
     private static void formatGrandTourDataWith(StringBuilder messageContent, Race race, RaceDay todayItem) {
+        final var prologue = todayItem.races().stream().filter(Stage::isPrologue).findFirst();
+        if(prologue.isPresent()){
+            formatPrologueData(messageContent, prologue.get());
+        }else{
+            formatStageData(messageContent, race, todayItem);
+        }
+    }
+
+    private static void formatPrologueData(StringBuilder messageContent, Stage prologue) {
+        messageContent.append(TAB).append("🚴").append(" ").append(prologue.raceName())
+                .append(NEW_LINE);
+    }
+
+    private static void formatStageData(StringBuilder messageContent, Race race, RaceDay todayItem) {
         final var stage = todayItem.races().stream().filter(Stage::isStageRace).findFirst();
 
         if (stage.isPresent()) {
