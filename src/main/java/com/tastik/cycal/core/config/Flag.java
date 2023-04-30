@@ -11,11 +11,13 @@ public class Flag {
         final var flagsMap = new HashMap<String, String>();
         flagsMap.put("ALG", "🇩🇿");
         flagsMap.put("AUS", "🇦🇺");
+        flagsMap.put("AUT", "🇦🇹");
         flagsMap.put("BEL", "🇧🇪");
         flagsMap.put("BIH", "🇧🇦");
         flagsMap.put("BRA", "🇧🇷");
         flagsMap.put("CHI", "🇨🇱");
         flagsMap.put("CRO", "🇭🇷");
+        flagsMap.put("CZE", "🇨🇿");
         flagsMap.put("ESP", "🇪🇸");
         flagsMap.put("FRA", "🇫🇷");
         flagsMap.put("GBR", "🇬🇧");
@@ -23,10 +25,12 @@ public class Flag {
         flagsMap.put("GRE", "🇬🇷");
         flagsMap.put("GUA", "🇬🇹");
         flagsMap.put("ITA", "🇮🇹");
+        flagsMap.put("LUX", "🇱🇺");
         flagsMap.put("MAS", "🇲🇾");
         flagsMap.put("MLI", "🇲🇱");
         flagsMap.put("NED", "🇳🇱");
         flagsMap.put("PAN", "🇵🇦");
+        flagsMap.put("POL", "🇵🇱");
         flagsMap.put("POR", "🇵🇹");
         flagsMap.put("SLO", "🇸🇮");
         flagsMap.put("SUI", "🇨🇭");
@@ -35,6 +39,7 @@ public class Flag {
         flagsMap.put("TUR", "🇹🇷");
         flagsMap.put("UAE", "🇦🇪");
         flagsMap.put("URU", "🇺🇾");
+        flagsMap.put("USA", "🇺🇸");
         flagsMap.put("ZIM", "🇿🇼");
         return flagsMap;
     }
