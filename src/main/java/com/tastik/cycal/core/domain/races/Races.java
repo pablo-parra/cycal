@@ -17,8 +17,9 @@ public record Races(List<Race> yesterdayRaces, List<Race> todayRaces) {
         return mapOf(todayRaces);
     }
 
+    private static final RaceCategory[] raceCategories = RaceCategory.values();
+
     public Map<RaceCategory, List<Race>> mapOf(List<Race> races) {
-        final var raceCategories = RaceCategory.values();
         final var racesMap = new LinkedHashMap<RaceCategory, List<Race>>();
         Arrays.stream(raceCategories).forEach(raceCategory -> {
             final var racesByCategory = races.stream().filter(race -> raceCategory.equals(race.category())).collect(Collectors.toList());
