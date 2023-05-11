@@ -15,12 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class Controller {
     private final UseCase<Races> readRaces;
     private final UseCase<Report> sendReport;
+    private final UseCase<Report> reportContent;
 
     public Controller(
             @Qualifier("ReadRaces") UseCase<Races> readRaces,
-            @Qualifier ("SendReport") UseCase<Report> sendReport) {
+            @Qualifier("SendReport") UseCase<Report> sendReport,
+            @Qualifier("ReportContent") UseCase<Report> reportContent) {
         this.readRaces = readRaces;
         this.sendReport = sendReport;
+        this.reportContent = reportContent;
     }
 
     @GetMapping("/health")
@@ -35,8 +38,13 @@ public class Controller {
         return ResponseEntity.ok().body(this.readRaces.execute());
     }
 
-    @PostMapping("/report")
+    @PostMapping("/sendReport")
     public ResponseEntity<Object> sendReport() {
         return ResponseEntity.ok().body(this.sendReport.execute());
+    }
+
+    @GetMapping("/reportContent")
+    public ResponseEntity<Object> reportContent() {
+        return ResponseEntity.ok().body(this.reportContent.execute());
     }
 }

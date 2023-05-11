@@ -19,12 +19,14 @@ public class Flag {
         flagsMap.put("CHI", "🇨🇱");
         flagsMap.put("CRO", "🇭🇷");
         flagsMap.put("CZE", "🇨🇿");
+        flagsMap.put("ESA", "🇸🇻");
         flagsMap.put("ESP", "🇪🇸");
         flagsMap.put("FRA", "🇫🇷");
         flagsMap.put("GBR", "🇬🇧");
         flagsMap.put("GER", "🇩🇪");
         flagsMap.put("GRE", "🇬🇷");
         flagsMap.put("GUA", "🇬🇹");
+        flagsMap.put("HUN", "🇭🇺");
         flagsMap.put("ITA", "🇮🇹");
         flagsMap.put("LUX", "🇱🇺");
         flagsMap.put("MAS", "🇲🇾");
@@ -41,6 +43,7 @@ public class Flag {
         flagsMap.put("UAE", "🇦🇪");
         flagsMap.put("URU", "🇺🇾");
         flagsMap.put("USA", "🇺🇸");
+        flagsMap.put("UZB", "🇺🇿");
         flagsMap.put("ZIM", "🇿🇼");
         return flagsMap;
     }

@@ -15,9 +15,7 @@ import org.springframework.stereotype.Component;
 public class SendReport implements UseCase<Report> {
 
     private final UseCase<Races> readRaces;
-
     private final UseCase<Ranking> readRanking;
-
     private final ReportSender sender;
 
     public SendReport(
