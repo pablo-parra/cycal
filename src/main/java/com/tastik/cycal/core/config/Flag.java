@@ -10,12 +10,15 @@ public class Flag {
     private static Map<String, String> loadFlags() {
         final var flagsMap = new HashMap<String, String>();
         flagsMap.put("ALG", "🇩🇿");
+        flagsMap.put("ARG", "🇦🇷");
         flagsMap.put("AUS", "🇦🇺");
         flagsMap.put("AUT", "🇦🇹");
         flagsMap.put("BEL", "🇧🇪");
         flagsMap.put("BEN", "🇧🇯");
         flagsMap.put("BIH", "🇧🇦");
+        flagsMap.put("BOL", "🇧🇴");
         flagsMap.put("BRA", "🇧🇷");
+        flagsMap.put("CAM", "🇰🇭");
         flagsMap.put("CHI", "🇨🇱");
         flagsMap.put("CRO", "🇭🇷");
         flagsMap.put("CZE", "🇨🇿");
