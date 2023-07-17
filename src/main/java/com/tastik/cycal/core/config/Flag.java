@@ -31,6 +31,7 @@ public class Flag {
         flagsMap.put("GUA", "🇬🇹");
         flagsMap.put("HUN", "🇭🇺");
         flagsMap.put("ITA", "🇮🇹");
+        flagsMap.put("IRA", "🇮🇷");
         flagsMap.put("LUX", "🇱🇺");
         flagsMap.put("MAS", "🇲🇾");
         flagsMap.put("MLI", "🇲🇱");
